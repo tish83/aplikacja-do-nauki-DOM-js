@@ -1,0 +1,1917 @@
+﻿// ==============================================
+//  DOM HUNTERS - scalony skrypt (bez ES modules)
+//  Dziala bezposrednio z file:// - nie wymaga serwera
+// ==============================================
+
+/* ============================================================
+   DANE SCENY I POSTACI
+   ============================================================ */
+
+function baseSceneTemplate() {
+  return `
+    <section id="arena" class="arena" data-zone="city">
+      <article class="character antihero mutant" id="deadpool" data-faction="x-force" data-threat="7">
+        <img class="character-photo" id="deadpool-portrait" src="${createAvatarDataUri("Deadpool", "deadpool")}" alt="Portret Deadpool" data-character="deadpool" />
+        <h3>Deadpool</h3>
+        <p class="status">Lubi chaos i chimichangi.</p>
+      </article>
+      <article class="character hunter" id="predator" data-faction="yautja" data-threat="9">
+        <img class="character-photo" id="predator-portrait" src="${createAvatarDataUri("Predator", "predator")}" alt="Portret Predator" data-character="predator" />
+        <h3>Predator</h3>
+        <p class="status">Poluje wedlug rytualu.</p>
+      </article>
+      <article class="character clown" id="pennywise" data-faction="sewers" data-threat="10">
+        <img class="character-photo" id="pennywise-portrait" src="${createAvatarDataUri("Pennywise", "pennywise")}" alt="Portret Pennywise" data-character="pennywise" />
+        <h3>Pennywise</h3>
+        <p class="status">Kusi czerwonym balonem.</p>
+      </article>
+      <article class="character xeno" id="alien" data-faction="xenomorph" data-threat="10">
+        <img class="character-photo" id="alien-portrait" src="${createAvatarDataUri("Alien", "alien")}" alt="Portret Alien" data-character="alien" />
+        <h3>Alien</h3>
+        <p class="status">Nie slychac go, gdy nadchodzi.</p>
+      </article>
+      <article class="character symbiote" id="venom" data-faction="symbiote" data-threat="8">
+        <img class="character-photo" id="venom-portrait" src="${createAvatarDataUri("Venom", "venom")}" alt="Portret Venom" data-character="venom" />
+        <h3>Venom</h3>
+        <p class="status">Mowi: We are Venom.</p>
+      </article>
+    </section>
+
+    <section class="tools">
+      <div class="panel" id="alert-panel">Panel alertu: offline</div>
+      <div class="panel">
+        <button id="panic-button" type="button">Panika!</button>
+        Kliki: <span id="panic-count">0</span>
+      </div>
+      <div class="panel">
+        <label for="codeword">Kod operacyjny</label>
+        <input id="codeword" type="text" />
+        <p id="codeword-preview">Podglad kodu...</p>
+      </div>
+      <div class="panel" id="ops-panel">
+        <form id="ops-form">
+          <label class="inline-option" for="stealth-mode">
+            <input id="stealth-mode" type="checkbox" />
+            Tryb stealth
+          </label>
+          <label for="target-priority">Priorytet celu</label>
+          <select id="target-priority">
+            <option value="low">Niski</option>
+            <option value="medium" selected>Sredni</option>
+            <option value="high">Wysoki</option>
+          </select>
+          <button id="deploy-button" type="button" disabled>Wyslij oddzial</button>
+        </form>
+      </div>
+      <div class="panel">
+        <ul id="squad-list">
+          <li data-name="deadpool">Deadpool</li>
+          <li data-name="predator">Predator</li>
+          <li data-name="pennywise">Pennywise</li>
+        </ul>
+      </div>
+      <div class="panel" id="archive-panel">
+        <p>Archiwum raportów</p>
+        <ul id="archive-list">
+          <li>raport-alpha</li>
+          <li>raport-beta</li>
+          <li>raport-gamma</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <p id="mission-status">Status: OCZEKIWANIE</p>
+        <ul id="intel-feed"></ul>
+      </div>
+    </section>
+  `;
+}
+
+const CHARACTER_POOL = [
+  { id: "deadpool",  classes: "character antihero mutant",  faction: "x-force",   threat: 7,  name: "Deadpool",  status: "Lubi chaos i chimichangi." },
+  { id: "predator",  classes: "character hunter",           faction: "yautja",    threat: 9,  name: "Predator",  status: "Poluje wedlug rytualu." },
+  { id: "pennywise", classes: "character clown",            faction: "sewers",    threat: 10, name: "Pennywise", status: "Kusi czerwonym balonem." },
+  { id: "alien",     classes: "character xeno",             faction: "xenomorph", threat: 10, name: "Alien",     status: "Nie slychac go, gdy nadchodzi." },
+  { id: "venom",     classes: "character symbiote",         faction: "symbiote",  threat: 8,  name: "Venom",     status: "Mowi: We are Venom." },
+  { id: "blade",     classes: "character hunter slayer",    faction: "dhampir",   threat: 8,  name: "Blade",     status: "Nocny lowca wampirow." },
+  { id: "ghostface", classes: "character slasher",          faction: "unknown",   threat: 7,  name: "Ghostface", status: "Lubi pytac o ulubiony film." },
+  { id: "jason",     classes: "character slasher undead",   faction: "camp",      threat: 9,  name: "Jason",     status: "Pojawia sie przy jeziorze." },
+  { id: "krueger",   classes: "character dreamer slasher",  faction: "dreams",    threat: 9,  name: "Freddy",    status: "Atakuje we snie." },
+  { id: "thanos",    classes: "character cosmic titan",     faction: "infinity",  threat: 10, name: "Thanos",    status: "Zna wage rownowagi." },
+];
+
+function avatarPaletteById(id) {
+  const map = {
+    deadpool: ["#e43a30", "#202020"],
+    predator: ["#8fd36f", "#2f4130"],
+    pennywise: ["#f3b9cf", "#703450"],
+    alien: ["#7afcc6", "#1f4741"],
+    venom: ["#8cb7ff", "#1d2648"],
+    blade: ["#f0c95a", "#41381f"],
+    ghostface: ["#f3f4f6", "#2a2d33"],
+    jason: ["#f09c54", "#3e2a1d"],
+    krueger: ["#d96f54", "#4f2e2a"],
+    thanos: ["#b59cff", "#302560"]
+  };
+  return map[id] || ["#8aa0ff", "#2f395f"];
+}
+
+function avatarFaceMarkupById(id) {
+  const faces = {
+    deadpool: '' +
+      '<path d="M92 162 C102 122 114 104 140 100 C166 104 178 122 188 162 Z" fill="#292a31"/>' +
+      '<path d="M104 150 C112 122 122 108 140 104 C158 108 168 122 176 150 L160 162 L120 162 Z" fill="#c21f28"/>' +
+      '<path d="M120 28 C134 18 146 18 160 28 L170 54 L110 54 Z" fill="#111217"/>' +
+      '<path d="M94 50 C106 24 174 24 186 50 L184 108 C170 134 110 134 96 108 Z" fill="#be1e26"/>' +
+      '<path d="M136 34 L144 34 L150 112 L130 112 Z" fill="#111217" opacity="0.95"/>' +
+      '<path d="M102 64 C114 48 126 48 136 64 C128 76 116 78 102 64 Z" fill="#f6f7fb"/>' +
+      '<path d="M144 64 C154 48 166 48 178 64 C164 78 152 76 144 64 Z" fill="#f6f7fb"/>' +
+      '<path d="M118 56 L134 70" stroke="#111217" stroke-width="6" stroke-linecap="round"/>' +
+      '<path d="M162 56 L146 70" stroke="#111217" stroke-width="6" stroke-linecap="round"/>' +
+      '<path d="M106 90 Q140 102 174 90" stroke="#240d11" stroke-width="5" fill="none" stroke-linecap="round"/>' +
+      '<rect x="176" y="34" width="18" height="88" rx="6" fill="#2b2328"/>' +
+      '<rect x="181" y="30" width="8" height="96" rx="4" fill="#101217"/>' +
+      '<path d="M178 84 C194 74 206 74 216 90 L216 156 L186 156 Z" fill="#25262d"/>' +
+      '<path d="M176 86 C190 80 202 84 212 96" stroke="#ff5c92" stroke-width="3" fill="none" opacity="0.65"/>' +
+      '<path d="M98 98 L84 152" stroke="#2f3037" stroke-width="12" stroke-linecap="round"/>' +
+      '<path d="M182 100 L194 150" stroke="#2f3037" stroke-width="12" stroke-linecap="round"/>',
+    predator: '' +
+      '<path d="M88 162 C100 124 114 108 140 104 C166 108 180 124 192 162 Z" fill="#4a392a"/>' +
+      '<ellipse cx="140" cy="82" rx="54" ry="60" fill="#927b56"/>' +
+      '<path d="M88 46 Q140 10 192 46 L182 106 Q140 132 98 106 Z" fill="#7c6948"/>' +
+      '<rect x="92" y="54" width="96" height="24" rx="12" fill="#4f4f4f"/>' +
+      '<circle cx="116" cy="66" r="6" fill="#ff6d5e"/>' +
+      '<circle cx="164" cy="66" r="6" fill="#ff6d5e"/>' +
+      '<path d="M110 90 Q140 108 170 90" stroke="#2d2418" stroke-width="5" fill="none"/>' +
+      '<path d="M94 112 C88 132 76 146 70 160" stroke="#2b1f16" stroke-width="8" stroke-linecap="round"/>' +
+      '<path d="M110 116 C106 136 98 148 94 162" stroke="#2b1f16" stroke-width="8" stroke-linecap="round"/>' +
+      '<path d="M170 116 C174 136 182 148 186 162" stroke="#2b1f16" stroke-width="8" stroke-linecap="round"/>' +
+      '<path d="M186 112 C192 132 204 146 210 160" stroke="#2b1f16" stroke-width="8" stroke-linecap="round"/>',
+    pennywise: '' +
+      '<path d="M90 162 C102 126 116 108 140 104 C164 108 178 126 190 162 Z" fill="#6d4756"/>' +
+      '<ellipse cx="140" cy="84" rx="50" ry="60" fill="#f6f3ef"/>' +
+      '<path d="M90 40 Q104 18 120 34 Q140 8 160 34 Q176 18 190 40" fill="#de5d4e"/>' +
+      '<circle cx="122" cy="74" r="7" fill="#f2d23b"/>' +
+      '<circle cx="158" cy="74" r="7" fill="#f2d23b"/>' +
+      '<circle cx="122" cy="74" r="3" fill="#1f2a50"/>' +
+      '<circle cx="158" cy="74" r="3" fill="#1f2a50"/>' +
+      '<path d="M120 36 C116 58 114 84 112 112" stroke="#d04d42" stroke-width="4" fill="none"/>' +
+      '<path d="M160 36 C164 58 166 84 168 112" stroke="#d04d42" stroke-width="4" fill="none"/>' +
+      '<circle cx="140" cy="92" r="6" fill="#d04d42"/>' +
+      '<path d="M114 110 Q140 126 166 110" stroke="#a71f29" stroke-width="5" fill="none" stroke-linecap="round"/>',
+    alien: '' +
+      '<path d="M92 162 C102 128 116 112 140 108 C164 112 178 128 188 162 Z" fill="#152725"/>' +
+      '<path d="M96 34 C108 10 172 10 184 34 C194 54 188 104 140 132 C92 104 86 54 96 34 Z" fill="#1e3432"/>' +
+      '<path d="M108 42 C116 24 164 24 172 42 C178 58 174 86 140 108 C106 86 102 58 108 42 Z" fill="#2c5c55"/>' +
+      '<ellipse cx="124" cy="72" rx="12" ry="8" fill="#d9fff6"/>' +
+      '<ellipse cx="156" cy="72" rx="12" ry="8" fill="#d9fff6"/>' +
+      '<path d="M118 96 Q140 110 162 96" stroke="#a8fff0" stroke-width="4" fill="none"/>' +
+      '<path d="M120 98 L116 126 L128 116 L136 136 L144 116 L152 128 L160 98" fill="#dffef6" opacity="0.9"/>',
+    venom: '' +
+      '<path d="M88 162 C100 126 114 108 140 104 C166 108 180 126 192 162 Z" fill="#0c1227"/>' +
+      '<ellipse cx="140" cy="82" rx="54" ry="62" fill="#0d1329"/>' +
+      '<path d="M92 56 C104 34 126 28 140 40 C154 28 176 34 188 56 C174 74 160 78 144 76 C142 68 138 68 136 76 C120 78 106 74 92 56 Z" fill="#f7fbff"/>' +
+      '<path d="M102 110 Q140 128 178 110" fill="#ffffff"/>' +
+      '<path d="M112 108 L122 120 L132 108 L142 122 L152 108 L162 120 L170 108" fill="#0d1329"/>' +
+      '<path d="M126 118 Q140 144 154 118 Q152 148 140 160 Q128 148 126 118 Z" fill="#ff4768"/>',
+    blade: '' +
+      '<path d="M90 162 C102 128 116 110 140 106 C164 110 178 128 190 162 Z" fill="#1a1615"/>' +
+      '<ellipse cx="140" cy="84" rx="50" ry="58" fill="#6b4832"/>' +
+      '<path d="M92 52 Q140 18 188 52 L178 110 Q140 134 102 110 Z" fill="#593623"/>' +
+      '<rect x="98" y="56" width="84" height="18" rx="9" fill="#0e0f15"/>' +
+      '<path d="M112 100 Q140 112 168 100" stroke="#2b1811" stroke-width="5" fill="none"/>' +
+      '<rect x="84" y="84" width="112" height="8" rx="4" fill="#111" opacity="0.5"/>',
+    ghostface: '' +
+      '<path d="M92 162 C102 128 116 112 140 108 C164 112 178 128 188 162 Z" fill="#090909"/>' +
+      '<path d="M96 34 Q140 18 184 34 L174 132 Q140 154 106 132 Z" fill="#111317"/>' +
+      '<path d="M112 44 Q140 28 168 44 L162 120 Q140 138 118 120 Z" fill="#f4efe7"/>' +
+      '<ellipse cx="126" cy="70" rx="8" ry="14" fill="#111317"/>' +
+      '<ellipse cx="154" cy="70" rx="8" ry="14" fill="#111317"/>' +
+      '<ellipse cx="140" cy="96" rx="8" ry="12" fill="#111317"/>' +
+      '<path d="M128 112 Q140 126 152 112" stroke="#111317" stroke-width="6" fill="none" stroke-linecap="round"/>',
+    jason: '' +
+      '<path d="M88 162 C102 126 116 110 140 106 C164 110 178 126 192 162 Z" fill="#5a4330"/>' +
+      '<ellipse cx="140" cy="84" rx="52" ry="60" fill="#e6d7bf"/>' +
+      '<path d="M92 52 Q140 26 188 52 L178 112 Q140 138 102 112 Z" fill="#d9c8ad"/>' +
+      '<circle cx="120" cy="74" r="6" fill="#2e2c2b"/>' +
+      '<circle cx="160" cy="74" r="6" fill="#2e2c2b"/>' +
+      '<circle cx="120" cy="74" r="2" fill="#ff4a44"/>' +
+      '<circle cx="160" cy="74" r="2" fill="#ff4a44"/>' +
+      '<path d="M118 96 Q140 106 162 96" stroke="#4e3a2b" stroke-width="4" fill="none"/>' +
+      '<circle cx="108" cy="58" r="3" fill="#7a5a42"/><circle cx="124" cy="56" r="3" fill="#7a5a42"/><circle cx="140" cy="54" r="3" fill="#7a5a42"/><circle cx="156" cy="56" r="3" fill="#7a5a42"/><circle cx="172" cy="58" r="3" fill="#7a5a42"/>',
+    krueger: '' +
+      '<path d="M90 162 C102 128 116 110 140 106 C164 110 178 128 190 162 Z" fill="#6f3128"/>' +
+      '<ellipse cx="140" cy="84" rx="50" ry="58" fill="#b06649"/>' +
+      '<path d="M94 50 Q140 18 186 50 L176 112 Q140 136 104 112 Z" fill="#8f4e38"/>' +
+      '<path d="M114 64 Q122 58 130 64" stroke="#211613" stroke-width="4" fill="none"/>' +
+      '<path d="M150 64 Q158 58 166 64" stroke="#211613" stroke-width="4" fill="none"/>' +
+      '<path d="M116 96 Q140 112 164 96" stroke="#2a1713" stroke-width="5" fill="none"/>' +
+      '<path d="M102 76 L126 68" stroke="#d49a84" stroke-width="3"/>' +
+      '<path d="M148 82 L174 72" stroke="#d49a84" stroke-width="3"/>' +
+      '<path d="M110 108 L136 98" stroke="#d49a84" stroke-width="3"/>',
+    thanos: '' +
+      '<path d="M88 162 C100 126 114 108 140 104 C166 108 180 126 192 162 Z" fill="#4e3890"/>' +
+      '<ellipse cx="140" cy="84" rx="52" ry="60" fill="#8660c8"/>' +
+      '<path d="M92 50 Q140 14 188 50 L176 114 Q140 138 104 114 Z" fill="#7050b5"/>' +
+      '<path d="M112 64 Q124 54 136 64" stroke="#261841" stroke-width="4" fill="none"/>' +
+      '<path d="M144 64 Q156 54 168 64" stroke="#261841" stroke-width="4" fill="none"/>' +
+      '<path d="M116 98 Q140 112 164 98" stroke="#2d1d4c" stroke-width="5" fill="none"/>' +
+      '<path d="M122 106 L158 106 L154 132 L126 132 Z" fill="#9d78db"/>' +
+      '<path d="M128 114 L152 114 M128 122 L152 122" stroke="#6b4ea5" stroke-width="3"/>'
+  };
+  return faces[id] || (
+    '<ellipse cx="140" cy="82" rx="52" ry="60" fill="#d7defd"/>' +
+    '<circle cx="122" cy="74" r="6" fill="#1f2a50"/>' +
+    '<circle cx="158" cy="74" r="6" fill="#1f2a50"/>' +
+    '<path d="M118 102 Q140 116 162 102" stroke="#1f2a50" stroke-width="4" fill="none"/>'
+  );
+}
+
+function avatarBackdropMarkupById(id) {
+  const backdrops = {
+    deadpool: '<rect width="280" height="180" fill="#d8dde3"/><rect y="126" width="280" height="54" fill="#cbd2da"/><path d="M190 26 L232 70 L232 158 L174 158 Z" fill="rgba(80,88,98,0.32)"/>',
+    predator: '<rect width="280" height="180" fill="#a8b29a"/><rect y="122" width="280" height="58" fill="#859275"/><path d="M0 24 C40 18 66 34 88 54" stroke="rgba(255,255,255,0.12)" stroke-width="22" fill="none"/>',
+    pennywise: '<rect width="280" height="180" fill="#d7dde5"/><rect y="122" width="280" height="58" fill="#c8cdd6"/><circle cx="214" cy="44" r="16" fill="#d22232"/><path d="M198 44 H150" stroke="#aab2bc" stroke-width="2"/>',
+    alien: '<rect width="280" height="180" fill="#314744"/><rect y="124" width="280" height="56" fill="#243734"/><path d="M0 40 C52 16 90 12 150 26" stroke="rgba(198,255,241,0.08)" stroke-width="18" fill="none"/>',
+    venom: '<rect width="280" height="180" fill="#39455d"/><rect y="124" width="280" height="56" fill="#283144"/><path d="M24 30 C80 12 126 12 182 30" stroke="rgba(255,255,255,0.08)" stroke-width="18" fill="none"/>',
+    blade: '<rect width="280" height="180" fill="#85817b"/><rect y="126" width="280" height="54" fill="#645f59"/><path d="M26 38 H250" stroke="rgba(255,255,255,0.08)" stroke-width="12"/>',
+    ghostface: '<rect width="280" height="180" fill="#6d727a"/><rect y="126" width="280" height="54" fill="#4d5258"/>',
+    jason: '<rect width="280" height="180" fill="#b0ac9f"/><rect y="126" width="280" height="54" fill="#8f8a7c"/>',
+    krueger: '<rect width="280" height="180" fill="#8e7469"/><rect y="126" width="280" height="54" fill="#6f564c"/><path d="M22 136 H258" stroke="rgba(120,10,16,0.28)" stroke-width="8"/>',
+    thanos: '<rect width="280" height="180" fill="#8576ad"/><rect y="126" width="280" height="54" fill="#65588d"/><path d="M34 40 H246" stroke="rgba(255,220,110,0.18)" stroke-width="12"/>'
+  };
+  return backdrops[id] || '<path d="M76 144 C92 116 108 106 140 104 C172 106 188 116 204 144 L204 168 L76 168 Z" fill="rgba(20,24,40,0.6)"/>';
+}
+
+function createAvatarDataUri(name, id) {
+  const colors = avatarPaletteById(id);
+  const svg = '' +
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 180" role="img" aria-label="' + name + '">' +
+      '<defs>' +
+        '<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">' +
+          '<stop offset="0%" stop-color="' + colors[0] + '"/>' +
+          '<stop offset="100%" stop-color="' + colors[1] + '"/>' +
+        '</linearGradient>' +
+        '<radialGradient id="glow" cx="50%" cy="38%" r="62%">' +
+          '<stop offset="0%" stop-color="#ffffff" stop-opacity="0.34"/>' +
+          '<stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>' +
+        '</radialGradient>' +
+        '<radialGradient id="vignette" cx="50%" cy="50%" r="72%">' +
+          '<stop offset="62%" stop-color="#000000" stop-opacity="0"/>' +
+          '<stop offset="100%" stop-color="#000000" stop-opacity="0.34"/>' +
+        '</radialGradient>' +
+        '<linearGradient id="faceLight" x1="0" y1="0" x2="0" y2="1">' +
+          '<stop offset="0%" stop-color="#ffffff" stop-opacity="0.16"/>' +
+          '<stop offset="100%" stop-color="#000000" stop-opacity="0.18"/>' +
+        '</linearGradient>' +
+        '<filter id="softBlur" x="-20%" y="-20%" width="140%" height="140%">' +
+          '<feGaussianBlur stdDeviation="8"/>' +
+        '</filter>' +
+      '</defs>' +
+      '<rect width="280" height="180" fill="url(#bg)"/>' +
+      '<ellipse cx="140" cy="28" rx="84" ry="24" fill="#ffffff" opacity="0.12" filter="url(#softBlur)"/>' +
+      '<ellipse cx="140" cy="154" rx="74" ry="18" fill="#000000" opacity="0.22" filter="url(#softBlur)"/>' +
+      avatarBackdropMarkupById(id) +
+      '<rect width="280" height="180" fill="url(#glow)"/>' +
+      '<ellipse cx="140" cy="154" rx="62" ry="14" fill="rgba(0,0,0,0.24)"/>' +
+      avatarFaceMarkupById(id) +
+      '<ellipse cx="140" cy="82" rx="56" ry="64" fill="url(#faceLight)" opacity="0.24"/>' +
+      '<path d="M84 166 H196" stroke="rgba(255,255,255,0.14)" stroke-width="2"/>' +
+      '<rect x="56" y="136" width="168" height="28" rx="14" fill="rgba(0,0,0,0.26)"/>' +
+      '<rect width="280" height="180" fill="url(#vignette)"/>' +
+      '<text x="140" y="154" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#ffffff">' + name + '</text>' +
+    '</svg>';
+  return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+  }
+  return a;
+}
+
+function liCount(selector, root) {
+  return root.querySelectorAll(selector).length;
+}
+
+function renderBaseScene(sceneRoot) {
+  sceneRoot.innerHTML = baseSceneTemplate();
+}
+
+function renderRandomScene(sceneRoot) {
+  const picked = shuffle(CHARACTER_POOL).slice(0, 4 + Math.floor(Math.random() * 3));
+  const cards = picked.map(function(c) {
+    return '<article class="' + c.classes + '" id="' + c.id + '" data-faction="' + c.faction + '" data-threat="' + c.threat + '"><img class="character-photo" id="' + c.id + '-portrait" src="' + createAvatarDataUri(c.name, c.id) + '" alt="Portret ' + c.name + '" data-character="' + c.id + '" /><h3>' + c.name + '</h3><p class="status">' + c.status + '</p></article>';
+  }).join("");
+  const listItems = picked.map(function(c) { return '<li data-name="' + c.id + '">' + c.name + '</li>'; }).join("");
+  sceneRoot.innerHTML = '<p style="color:#94ffc6;font-size:0.88rem;margin-bottom:8px;">Tryb eksploracji &#8212; losowa scena. Eksperymentuj swobodnie.</p><section id="arena" class="arena" data-zone="city">' + cards + '</section><section class="tools"><div class="panel" id="alert-panel">Panel alertu: offline</div><div class="panel"><button id="panic-button" type="button">Panika!</button> Kliki: <span id="panic-count">0</span></div><div class="panel"><label for="codeword">Kod operacyjny</label><input id="codeword" type="text" /><p id="codeword-preview">Podglad kodu...</p></div><div class="panel" id="ops-panel"><form id="ops-form"><label class="inline-option" for="stealth-mode"><input id="stealth-mode" type="checkbox" />Tryb stealth</label><label for="target-priority">Priorytet celu</label><select id="target-priority"><option value="low">Niski</option><option value="medium" selected>Sredni</option><option value="high">Wysoki</option></select><button id="deploy-button" type="button" disabled>Wyslij oddzial</button></form></div><div class="panel"><ul id="squad-list">' + listItems + '</ul></div><div class="panel" id="archive-panel"><p>Archiwum raportów</p><ul id="archive-list"><li>raport-alpha</li><li>raport-beta</li><li>raport-gamma</li></ul></div><div class="panel"><p id="mission-status">Status: OCZEKIWANIE</p><ul id="intel-feed"></ul></div></section>';
+}
+
+/* ============================================================
+   DEFINICJE MISJI
+   ============================================================ */
+
+const missions = [
+  {
+    id: 1,
+    topic: "getElementById",
+    title: "Misja 1: Wskaż Deadpoola",
+    objective: "\nKrok 1: pobierz element o id 'deadpool' przez document.getElementById('deadpool').\n Krok 2: dodaj temu elementowi klasę 'selected'.",
+    tips: ["W getElementById podajesz samo id bez znaku #.", "Po pobraniu elementu uzyj classList.add('selected')."],
+    starter: 'const deadpool = document.getElementById("deadpool");\n// deadpool.classList.add("selected");',
+    solution: 'const deadpool = document.getElementById("deadpool");\ndeadpool.classList.add("selected");',
+    validate: function(scene) {
+      const deadpool = scene.querySelector("#deadpool");
+      return deadpool && deadpool.classList.contains("selected");
+    }
+  },
+  {
+    id: 2,
+    topic: "getElementById",
+    title: "Misja 2: Aktywuj panel alertu",
+    objective: "Krok 1: pobierz element o id 'alert-panel' przez getElementById(). Krok 2: ustaw jego textContent na 'Panel alertu: ONLINE'.",
+    tips: ["textContent podmienia tekst widoczny wewnatrz elementu.", "Nie tworzysz nowego panelu - zmieniasz tekst juz istniejacego elementu."],
+    starter: 'const panel = document.getElementById("alert-panel");',
+    solution: 'const panel = document.getElementById("alert-panel");\npanel.textContent = "Panel alertu: ONLINE";',
+    validate: function(scene) {
+      const panel = scene.querySelector("#alert-panel");
+      return panel && panel.textContent.trim() === "Panel alertu: ONLINE";
+    }
+  },
+  {
+    id: 3,
+    topic: "getElementById",
+    title: "Misja 3: Ustaw licznik",
+    objective: "Krok 1: pobierz element o id 'panic-count'. Krok 2: ustaw tekst tego elementu na '5'.",
+    tips: ["#panic-count to licznik obok przycisku 'Panika!'.", "Wystarczy przypisac count.textContent = '5'."],
+    starter: 'const count = document.getElementById("panic-count");',
+    solution: 'const count = document.getElementById("panic-count");\ncount.textContent = "5";',
+    validate: function(scene) {
+      const count = scene.querySelector("#panic-count");
+      return count && count.textContent.trim() === "5";
+    }
+  },
+  {
+    id: 4,
+    topic: "getElementById",
+    title: "Misja 4: Kod operacyjny",
+    objective: "Krok 1: pobierz pole tekstowe o id 'codeword'. Krok 2: wpisz do niego wartość 'xforce' przez właściwość value.",
+    tips: ["Dla inputa tekstowego zmieniasz value, a nie textContent.", "Wartość ma być dokladnie 'xforce', małymi literami."],
+    starter: 'const codeword = document.getElementById("codeword");',
+    solution: 'const codeword = document.getElementById("codeword");\ncodeword.value = "xforce";',
+    validate: function(scene) {
+      const codeword = scene.querySelector("#codeword");
+      return codeword && codeword.value === "xforce";
+    }
+  },
+  {
+    id: 5,
+    topic: "querySelector",
+    title: "Misja 5: Namierz Predatora",
+    objective: "Krok 1: pobierz przez querySelector element o id 'predator' (selektor: '#predator'). Krok 2: dodaj temu elementowi klasę 'targeted'.",
+    tips: ["querySelector zwraca tylko pierwszy pasujacy element (albo null).", "W selektorze CSS: #(hash) oznacza id, .(kropka) oznacza klasę, a np. 'p' oznacza znacznik HTML.", "Tutaj '#predator' wskazuje jeden konkretny element o id='predator'."],
+    starter: 'const predator = document.querySelector("#predator");',
+    solution: 'const predator = document.querySelector("#predator");\npredator.classList.add("targeted");',
+    validate: function(scene) {
+      const predator = scene.querySelector("#predator");
+      return predator && predator.classList.contains("targeted");
+    }
+  },
+  {
+    id: 6,
+    topic: "querySelector",
+    title: "Misja 6: Komunikat Venoma",
+    objective: "Krok 1: w karcie #venom znajdź paragraf z klasą '.status' (selektor: '#venom .status'). Krok 2: ustaw jego textContent na 'Gotowy do ataku.'.",
+    tips: ["W scenie DOM #venom zawiera <p class='status'>..., dlatego selektor '#venom .status' jest poprawny.", "Spacja w selektorze '#venom .status' oznacza: element '.status' znajdujacy sie wewnatrz '#venom'.", "querySelector zwroci tylko pierwszy pasujacy element - tutaj jest to status Venoma."],
+    starter: 'const status = document.querySelector("#venom .status");',
+    solution: 'const status = document.querySelector("#venom .status");\nstatus.textContent = "Gotowy do ataku.";',
+    validate: function(scene) {
+      const status = scene.querySelector("#venom .status");
+      return status && status.textContent.trim() === "Gotowy do ataku.";
+    }
+  },
+  {
+    id: 7,
+    topic: "querySelector",
+    title: "Misja 7: Pierwszy panel",
+    objective: "Uzyj querySelector('.panel'), pobierz pierwszy panel z DOM i ustaw mu atrybut data-open='yes'.",
+    tips: ["querySelector zwraca tylko 1 element: pierwszy pasujacy do selektora.", "'.panel' oznacza element z klasa 'panel'.", "Mozesz użyć setAttribute('data-open', 'yes') albo firstPanel.dataset.open = 'yes'."],
+    starter: 'const firstPanel = document.querySelector(".panel");',
+    solution: 'const firstPanel = document.querySelector(".panel");\nfirstPanel.setAttribute("data-open", "yes");',
+    validate: function(scene) {
+      const firstPanel = scene.querySelector(".panel");
+      return firstPanel && firstPanel.getAttribute("data-open") === "yes";
+    }
+  },
+  {
+    id: 8,
+    topic: "querySelector",
+    title: "Misja 8: Oznacz pierwszy cel",
+    objective: "Uzyj querySelector('#squad-list li'), pobierz pierwszy element li z listy #squad-list i dodaj mu klasę 'tagged'.",
+    tips: ["Selektor '#squad-list li' oznacza: pierwszy <li> znajdujacy sie wewnatrz elementu o id='squad-list'.", "querySelector zwraca tylko pierwszy pasujacy <li>.", "Klasę dodasz przez classList.add('tagged')."],
+    starter: 'const firstTarget = document.querySelector("#squad-list li");',
+    solution: 'const firstTarget = document.querySelector("#squad-list li");\nfirstTarget.classList.add("tagged");',
+    validate: function(scene) {
+      const firstTarget = scene.querySelector("#squad-list li");
+      return firstTarget && firstTarget.classList.contains("tagged");
+    }
+  },
+  {
+    id: 9,
+    topic: "querySelectorAll",
+    title: "Misja 9: Oznacz wszystkie postacie",
+    objective: "Krok 1: pobierz wszystkie karty postaci selektorem '.character' przez querySelectorAll(). Krok 2: ustaw na kazdej karcie atrybut data-seen='1'.",
+    tips: ["querySelectorAll zwraca wiele elementow, wiec trzeba przejsc po nich petla.", "Na kazdym elemencie ustaw setAttribute('data-seen', '1')."],
+    starter: 'const characters = document.querySelectorAll(".character");',
+    solution: 'const characters = document.querySelectorAll(".character");\ncharacters.forEach((el) => {\n  el.setAttribute("data-seen", "1");\n});',
+    validate: function(scene) {
+      const characters = scene.querySelectorAll(".character");
+      return characters.length >= 5 && Array.from(characters).every(function(el) { return el.getAttribute("data-seen") === "1"; });
+    }
+  },
+  {
+    id: 10,
+    topic: "querySelectorAll",
+    title: "Misja 10: Podswietl zagrozenia",
+    objective: "Krok 1: pobierz przez querySelectorAll() dwie karty: .xeno oraz .symbiote. Krok 2: ustaw im style.borderColor na 'rgb(255, 77, 45)'.",
+    tips: ["Przecinek w selektorze oznacza: znajdź elementy pasujace do pierwszej albo drugiej klasy.", "Poniewaz dostajesz kilka elementow, zmien kolor obramowania w petli."],
+    starter: 'const danger = document.querySelectorAll(".xeno, .symbiote");',
+    solution: 'const danger = document.querySelectorAll(".xeno, .symbiote");\ndanger.forEach((el) => {\n  el.style.borderColor = "rgb(255, 77, 45)";\n});',
+    validate: function(scene) {
+      const danger = scene.querySelectorAll(".xeno, .symbiote");
+      return danger.length === 2 && Array.from(danger).every(function(el) { return el.style.borderColor === "rgb(255, 77, 45)"; });
+    }
+  },
+  {
+    id: 11,
+    topic: "querySelectorAll",
+    title: "Misja 11: Nazwy wielkimi literami",
+    objective: "Krok 1: pobierz wszystkie naglowki h3 z kart postaci wewnatrz #arena. Krok 2: zamien tekst kazdego naglowka na DUZE litery.",
+    tips: ["Selektor '#arena .character h3' oznacza naglowki h3 wewnatrz kart postaci.", "Dla kazdego elementu uzyj textContent = textContent.toUpperCase()."],
+    starter: 'const names = document.querySelectorAll("#arena .character h3");',
+    solution: 'const names = document.querySelectorAll("#arena .character h3");\nnames.forEach((el) => {\n  el.textContent = el.textContent.toUpperCase();\n});',
+    validate: function(scene) {
+      const names = scene.querySelectorAll("#arena .character h3");
+      return names.length >= 5 && Array.from(names).every(function(el) { return el.textContent === el.textContent.toUpperCase(); });
+    }
+  },
+  {
+    id: 12,
+    topic: "querySelectorAll",
+    title: "Misja 12: Oznacz panele",
+    objective: "Krok 1: pobierz wszystkie panele przez querySelectorAll('.panel'). Krok 2: dodaj kazdemu panelowi klasę 'active'.",
+    tips: ["'.panel' oznacza wszystkie elementy z klasa panel.", "Na kazdym panelu wykonaj classList.add('active')."],
+    starter: 'const panels = document.querySelectorAll(".panel");',
+    solution: 'const panels = document.querySelectorAll(".panel");\npanels.forEach((el) => {\n  el.classList.add("active");\n});',
+    validate: function(scene) {
+      const panels = scene.querySelectorAll(".panel");
+      return panels.length >= 4 && Array.from(panels).every(function(el) { return el.classList.contains("active"); });
+    }
+  },
+  {
+    id: 13,
+    topic: "getElementsByClassName",
+    title: "Misja 13: Kolekcja postaci",
+    objective: "Krok 1: pobierz wszystkie elementy klasy 'character' przez getElementsByClassName(). Krok 2: ustaw atrybut title='tracked' tylko na pierwszej karcie z tej kolekcji.",
+    tips: ["getElementsByClassName zwraca kolekcje wielu elementow.", "Pierwszy element pobierzesz przez cards[0]."],
+    starter: 'const cards = document.getElementsByClassName("character");',
+    solution: 'const cards = document.getElementsByClassName("character");\ncards[0].setAttribute("title", "tracked");',
+    validate: function(scene) {
+      const first = scene.querySelector(".character");
+      return first && first.getAttribute("title") === "tracked";
+    }
+  },
+  {
+    id: 14,
+    topic: "getElementsByClassName",
+    title: "Misja 14: Oznacz lowcow",
+    objective: "Krok 1: pobierz wszystkie elementy klasy 'hunter'. Krok 2: ustaw na kazdym z nich atrybut data-targeted='yes'.",
+    tips: ["Klasa hunter oznacza lowce, np. Predatora.", "Po kolekcji przejdz petla i na kazdym elemencie wywolaj setAttribute()."],
+    starter: 'const hunters = document.getElementsByClassName("hunter");',
+    solution: 'const hunters = document.getElementsByClassName("hunter");\nfor (const hunter of hunters) {\n  hunter.setAttribute("data-targeted", "yes");\n}',
+    validate: function(scene) {
+      const hunters = scene.querySelectorAll(".hunter");
+      return hunters.length > 0 && Array.from(hunters).every(function(el) { return el.getAttribute("data-targeted") === "yes"; });
+    }
+  },
+  {
+    id: 15,
+    topic: "getElementsByClassName",
+    title: "Misja 15: Wzmocnij statusy",
+    objective: "Krok 1: pobierz wszystkie elementy klasy 'status'. Krok 2: dodaj kazdemu z nich klasę 'tagged'.",
+    tips: ["Statusy to paragrafy <p class='status'> wewnatrz kart postaci.", "Na kazdym statusie wywolaj classList.add('tagged')."],
+    starter: 'const statuses = document.getElementsByClassName("status");',
+    solution: 'const statuses = document.getElementsByClassName("status");\nfor (const status of statuses) {\n  status.classList.add("tagged");\n}',
+    validate: function(scene) {
+      const statuses = scene.querySelectorAll(".status");
+      return statuses.length >= 5 && Array.from(statuses).every(function(el) { return el.classList.contains("tagged"); });
+    }
+  },
+  {
+    id: 16,
+    topic: "getElementsByClassName",
+    title: "Misja 16: Panele pod kontrola",
+    objective: "Krok 1: pobierz wszystkie panele przez getElementsByClassName('panel'). Krok 2: ustaw style.borderStyle = 'solid' tylko na pierwszym i drugim panelu.",
+    tips: ["Pracujesz tylko na dwoch pierwszych elementach z kolekcji: panels[0] i panels[1].", "borderStyle zmieniasz przez obiekt style."],
+    starter: 'const panels = document.getElementsByClassName("panel");',
+    solution: 'const panels = document.getElementsByClassName("panel");\npanels[0].style.borderStyle = "solid";\npanels[1].style.borderStyle = "solid";',
+    validate: function(scene) {
+      const panels = scene.querySelectorAll(".panel");
+      if (panels.length < 2) return false;
+      return panels[0].style.borderStyle === "solid" && panels[1].style.borderStyle === "solid";
+    }
+  },
+  {
+    id: 17,
+    topic: "classList.add",
+    title: "Misja 17: Alarm online",
+    objective: "Pobierz #alert-panel i dodaj mu klasę 'active'.",
+    tips: ["Nie zmieniasz tekstu panelu - tylko dopisujesz nowa klasę CSS.", "Uzyj panel.classList.add('active')."],
+    starter: 'const panel = document.getElementById("alert-panel");',
+    solution: 'const panel = document.getElementById("alert-panel");\npanel.classList.add("active");',
+    validate: function(scene) {
+      const panel = scene.querySelector("#alert-panel");
+      return panel && panel.classList.contains("active");
+    }
+  },
+  {
+    id: 18,
+    topic: "classList.remove",
+    title: "Misja 18: Uspokoj Deadpoola",
+    objective: "Pobierz #deadpool i usun z niego klasę 'mutant'.",
+    tips: ["Usuwasz tylko jedna klasę, a pozostale klasy elementu zostaja bez zmian.", "Uzyj deadpool.classList.remove('mutant')."],
+    starter: 'const deadpool = document.getElementById("deadpool");',
+    solution: 'const deadpool = document.getElementById("deadpool");\ndeadpool.classList.remove("mutant");',
+    validate: function(scene) {
+      const deadpool = scene.querySelector("#deadpool");
+      return deadpool && !deadpool.classList.contains("mutant");
+    }
+  },
+  {
+    id: 19,
+    topic: "classList.toggle",
+    title: "Misja 19: Oznacz drugi cel",
+    objective: "Krok 1: pobierz drugi element li z listy #squad-list. Krok 2: przelacz na nim klasę 'tagged' przez classList.toggle().",
+    tips: ["Drugi element listy pobierzesz np. selektorem '#squad-list li:nth-child(2)'.", "toggle doda klasę, jesli jej nie ma, albo usunie, jesli juz istnieje."],
+    starter: 'const second = document.querySelector("#squad-list li:nth-child(2)");',
+    solution: 'const second = document.querySelector("#squad-list li:nth-child(2)");\nsecond.classList.toggle("tagged");',
+    validate: function(scene) {
+      const second = scene.querySelector("#squad-list li:nth-child(2)");
+      return second && second.classList.contains("tagged");
+    }
+  },
+  {
+    id: 20,
+    topic: "classList.contains",
+    title: "Misja 20: Potwierdz antybohatera",
+    objective: "Krok 1: sprawdz, czy #deadpool ma klasę 'antihero' przez classList.contains(). Krok 2: jezeli wynik to true, dodaj klasę 'verified' do #mission-status.",
+    tips: ["contains() zwraca true albo false i samo niczego nie zmienia w HTML.", "Dopiero w instrukcji if dodajesz klasę do drugiego elementu."],
+    starter: 'const deadpool = document.getElementById("deadpool");\nconst status = document.getElementById("mission-status");',
+    solution: 'const deadpool = document.getElementById("deadpool");\nconst status = document.getElementById("mission-status");\nif (deadpool.classList.contains("antihero")) {\n  status.classList.add("verified");\n}',
+    validate: function(scene) {
+      const status = scene.querySelector("#mission-status");
+      return status && status.classList.contains("verified");
+    }
+  },
+  {
+    id: 21,
+    topic: "setAttribute",
+    title: "Misja 21: Flaga gotowosci",
+    objective: "Krok 1: pobierz element #mission-status. Krok 2: ustaw na nim atrybut data-ready o wartośći 'yes' przy pomocy setAttribute().",
+    tips: ["Atrybut data-ready zapisujesz jako tekst: 'data-ready'.", "Po wykonaniu zadania element powinien miec w HTML atrybut data-ready='yes'."],
+    starter: 'const status = document.getElementById("mission-status");',
+    solution: 'const status = document.getElementById("mission-status");\nstatus.setAttribute("data-ready", "yes");',
+    validate: function(scene) {
+      const status = scene.querySelector("#mission-status");
+      return status && status.getAttribute("data-ready") === "yes";
+    }
+  },
+  {
+    id: 22,
+    topic: "getAttribute",
+    title: "Misja 22: Odczytaj poziom zagrozenia",
+    objective: "Krok 1: pobierz #alien i odczytaj z niego atrybut data-threat przez getAttribute(). Krok 2: wpisz odczytana wartość do #mission-status w formie tekstu 'Threat: 10'.",
+    tips: ["getAttribute('data-threat') zwroci tekst, np. '10'.", "Potem polacz ten tekst z napisem 'Threat: '."],
+    starter: 'const alien = document.getElementById("alien");\nconst status = document.getElementById("mission-status");',
+    solution: 'const alien = document.getElementById("alien");\nconst status = document.getElementById("mission-status");\nconst threat = alien.getAttribute("data-threat");\nstatus.textContent = "Threat: " + threat;',
+    validate: function(scene) {
+      const status = scene.querySelector("#mission-status");
+      return status && status.textContent.trim() === "Threat: 10";
+    }
+  },
+  {
+    id: 23,
+    topic: "dataset write",
+    title: "Misja 23: Zaznacz Venoma",
+    objective: "Pobierz element #venom i zapisz w nim dane pomocnicze przez dataset: ustaw venom.dataset.ready = 'true'.",
+    tips: ["dataset.ready odpowiada atrybutowi data-ready.", "Po tej operacji w HTML element Venoma ma miec data-ready='true'."],
+    starter: 'const venom = document.getElementById("venom");',
+    solution: 'const venom = document.getElementById("venom");\nvenom.dataset.ready = "true";',
+    validate: function(scene) {
+      const venom = scene.querySelector("#venom");
+      return venom && venom.dataset.ready === "true";
+    }
+  },
+  {
+    id: 24,
+    topic: "dataset read",
+    title: "Misja 24: Odczytaj frakcje",
+    objective: "Krok 1: odczytaj wartość #deadpool.dataset.faction. Krok 2: wpisz ten tekst do elementu #codeword-preview.",
+    tips: ["dataset.faction odczytuje wartość z atrybutu data-faction.", "W tej scenie oczekiwana wartość to 'x-force'."],
+    starter: 'const deadpool = document.getElementById("deadpool");\nconst preview = document.getElementById("codeword-preview");',
+    solution: 'const deadpool = document.getElementById("deadpool");\nconst preview = document.getElementById("codeword-preview");\npreview.textContent = deadpool.dataset.faction;',
+    validate: function(scene) {
+      const preview = scene.querySelector("#codeword-preview");
+      return preview && preview.textContent.trim() === "x-force";
+    }
+  },
+  {
+    id: 25,
+    topic: "createElement + append",
+    title: "Misja 25: Dodaj wpis do listy",
+    objective: "Krok 1: utworz nowy element li. Krok 2: wpisz do niego tekst 'Blade' i ustaw atrybut data-name='blade'. Krok 3: dodaj ten element na koniec listy #squad-list przez append().",
+    tips: ["Najpierw tworzysz pusty element createElement('li').", "Dopiero potem ustawiasz mu tekst, atrybut i dopinasz go do DOM."],
+    starter: 'const list = document.getElementById("squad-list");',
+    solution: 'const list = document.getElementById("squad-list");\nconst li = document.createElement("li");\nli.textContent = "Blade";\nli.setAttribute("data-name", "blade");\nlist.append(li);',
+    validate: function(scene) {
+      const added = scene.querySelector('#squad-list li[data-name="blade"]');
+      return !!added && added.textContent.trim() === "Blade";
+    }
+  },
+  {
+    id: 26,
+    topic: "createElement + append",
+    title: "Misja 26: Dodaj nowa karte",
+    objective: "Krok 1: utworz element article i ustaw mu id 'blade' oraz klasę 'character'. Krok 2: utworz w nim naglowek h3 z tekstem 'Blade'. Krok 3: dolacz cala karte do #arena.",
+    tips: ["article i h3 tworzysz osobno przez createElement().", "Najpierw wloz h3 do article, a dopiero potem article do #arena."],
+    starter: 'const arena = document.getElementById("arena");',
+    solution: 'const arena = document.getElementById("arena");\nconst blade = document.createElement("article");\nblade.id = "blade";\nblade.className = "character";\nconst h3 = document.createElement("h3");\nh3.textContent = "Blade";\nblade.append(h3);\narena.append(blade);',
+    validate: function(scene) {
+      const blade = scene.querySelector("#blade");
+      return blade && blade.classList.contains("character") && blade.querySelector("h3") && blade.querySelector("h3").textContent.trim() === "Blade";
+    }
+  },
+  {
+    id: 27,
+    topic: "insertBefore",
+    title: "Misja 27: Notatka przed arena",
+    objective: "Krok 1: utworz paragraf p o id 'warning-note' i tekscie 'UWAGA: Strefa zagrozenia'. Krok 2: wstaw go przed #arena przy pomocy insertBefore().",
+    tips: ["insertBefore wywolujesz na rodzicu, czyli tutaj na #scene-root.", "Kolejnosc jest taka: root.insertBefore(nowyElement, arena)."],
+    starter: 'const root = document.getElementById("scene-root");\nconst arena = document.getElementById("arena");',
+    solution: 'const root = document.getElementById("scene-root");\nconst arena = document.getElementById("arena");\nconst note = document.createElement("p");\nnote.id = "warning-note";\nnote.textContent = "UWAGA: Strefa zagrozenia";\nroot.insertBefore(note, arena);',
+    validate: function(scene) {
+      const note = scene.querySelector("#warning-note");
+      const arena = scene.querySelector("#arena");
+      return note && arena && note.nextElementSibling === arena;
+    }
+  },
+  {
+    id: 28,
+    topic: "remove",
+    title: "Misja 28: Usun Predatora",
+    objective: "Krok 1: pobierz karte #predator. Krok 2: usun ten element z drzewa DOM.",
+    tips: ["Po usunieciu element nie powinien juz istniec w scenie.", "Najprostsze rozwiazanie to predator.remove()."],
+    starter: 'const predator = document.getElementById("predator");',
+    solution: 'const predator = document.getElementById("predator");\npredator.remove();',
+    validate: function(scene) {
+      return scene.querySelector("#predator") === null;
+    }
+  },
+  {
+    id: 29,
+    topic: "addEventListener click",
+    title: "Misja 29: Licznik klikniec",
+    objective: "Krok 1: podepnij addEventListener('click', ...) do przycisku #panic-button. Krok 2: po kazdym kliknieciu zwieksz tekst w #panic-count o 1.",
+    tips: ["Listener to funkcja, ktora uruchomi sie po kliknieciu przycisku.", "Zawartość #panic-count jest tekstem, wiec najpierw zamien ja na liczbe."],
+    starter: 'const panicBtn = document.getElementById("panic-button");\nconst panicCount = document.getElementById("panic-count");',
+    solution: 'const panicBtn = document.getElementById("panic-button");\nconst panicCount = document.getElementById("panic-count");\npanicBtn.addEventListener("click", () => {\n  panicCount.textContent = String(Number(panicCount.textContent) + 1);\n});',
+    validate: function(scene) {
+      const button = scene.querySelector("#panic-button");
+      const counter = scene.querySelector("#panic-count");
+      if (!button || !counter) return false;
+      button.click();
+      button.click();
+      button.click();
+      return counter.textContent.trim() === "3";
+    }
+  },
+  {
+    id: 30,
+    topic: "addEventListener input",
+    title: "Misja 30: Zywy podglad",
+    objective: "Krok 1: podepnij zdarzenie input do pola #codeword. Krok 2: przy wpisywaniu pokazuj w #codeword-preview ten sam tekst, ale zamieniony na DUZE litery.",
+    tips: ["W zdarzeniu input aktualna wartość pola znajdziesz w event.target.value.", "Do zamiany na duze litery uzyj toUpperCase()."],
+    starter: 'const codeword = document.getElementById("codeword");\nconst preview = document.getElementById("codeword-preview");',
+    solution: 'const codeword = document.getElementById("codeword");\nconst preview = document.getElementById("codeword-preview");\ncodeword.addEventListener("input", (event) => {\n  preview.textContent = event.target.value.toUpperCase();\n});',
+    validate: function(scene) {
+      const input = scene.querySelector("#codeword");
+      const preview = scene.querySelector("#codeword-preview");
+      if (!input || !preview) return false;
+      input.value = "venom";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      return preview.textContent.trim() === "VENOM";
+    }
+  },
+  {
+    id: 31,
+    topic: "event delegation",
+    title: "Misja 31: Delegacja na liscie",
+    objective: "Nie dodawaj listenera do kazdego <li> osobno. Zamiast tego ustaw jeden listener na #squad-list i spraw, aby klikniety element <li> przelaczal klasę 'tagged'.",
+    tips: ["To jest delegacja zdarzen: listener jest na rodzicu, ale reaguje na klikniete dziecko.", "Sprawdz, czy event.target jest elementem li, np. przez matches('li')."],
+    starter: 'const squadList = document.getElementById("squad-list");',
+    solution: 'const squadList = document.getElementById("squad-list");\nsquadList.addEventListener("click", (event) => {\n  if (event.target.matches("li")) {\n    event.target.classList.toggle("tagged");\n  }\n});',
+    validate: function(scene) {
+      const second = scene.querySelector("#squad-list li:nth-child(2)");
+      if (!second) return false;
+      second.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      return second.classList.contains("tagged");
+    }
+  },
+  {
+    id: 32,
+    topic: "addEventListener once",
+    title: "Misja 32: Jednorazowy listener",
+    objective: "Dodaj do #panic-button listener click z opcja { once: true }. Po kliknieciu ma zwiekszyc #panic-count, ale tylko przy pierwszym kliknieciu.",
+    tips: ["Opcja { once: true } sama odczepi listener po pierwszym wywolaniu.", "Jesli klikniesz kilka razy, licznik ma wzrosnac tylko do 1."],
+    starter: 'const panicBtn = document.getElementById("panic-button");\nconst panicCount = document.getElementById("panic-count");',
+    solution: 'const panicBtn = document.getElementById("panic-button");\nconst panicCount = document.getElementById("panic-count");\npanicBtn.addEventListener("click", () => {\n  panicCount.textContent = String(Number(panicCount.textContent) + 1);\n}, { once: true });',
+    validate: function(scene) {
+      const panicBtn = scene.querySelector("#panic-button");
+      const panicCount = scene.querySelector("#panic-count");
+      if (!panicBtn || !panicCount) return false;
+      panicBtn.click();
+      panicBtn.click();
+      panicBtn.click();
+      return panicCount.textContent.trim() === "1";
+    }
+  },
+  {
+    id: 33,
+    topic: "removeEventListener",
+    title: "Misja 33: Odlacz handler",
+    objective: "Krok 1: utworz nazwana funkcje panicHandler. Krok 2: dodaj ja jako listener click do #panic-button. Krok 3: od razu usun ten sam listener przez removeEventListener().",
+    tips: ["removeEventListener zadziala tylko wtedy, gdy przekazesz te sama funkcje co przy addEventListener.", "Dlatego tutaj potrzebna jest funkcja nazwana, a nie anonimowa."],
+    starter: 'const panicBtn = document.getElementById("panic-button");\nconst panicCount = document.getElementById("panic-count");\n\nfunction panicHandler() {\n  panicCount.textContent = String(Number(panicCount.textContent) + 1);\n}',
+    solution: 'const panicBtn = document.getElementById("panic-button");\nconst panicCount = document.getElementById("panic-count");\n\nfunction panicHandler() {\n  panicCount.textContent = String(Number(panicCount.textContent) + 1);\n}\n\npanicBtn.addEventListener("click", panicHandler);\npanicBtn.removeEventListener("click", panicHandler);',
+    validate: function(scene) {
+      const panicBtn = scene.querySelector("#panic-button");
+      const panicCount = scene.querySelector("#panic-count");
+      if (!panicBtn || !panicCount) return false;
+      panicBtn.click();
+      panicBtn.click();
+      return panicCount.textContent.trim() === "0";
+    }
+  },
+  {
+    id: 34,
+    topic: "stopPropagation",
+    title: "Misja 34: Zatrzymaj bubbling",
+    objective: "Dodaj listener click do #deadpool i wewnatrz funkcji wywolaj event.stopPropagation(), aby klikniecie nie dotarlo wyzej do #arena.",
+    tips: ["Bez stopPropagation zdarzenie przechodzi z dziecka do rodzica.", "Tutaj chodzi o zablokowanie tej drogi po kliknieciu karty Deadpoola."],
+    starter: 'const deadpool = document.getElementById("deadpool");',
+    solution: 'const deadpool = document.getElementById("deadpool");\ndeadpool.addEventListener("click", (event) => {\n  event.stopPropagation();\n});',
+    validate: function(scene) {
+      const bubbled = false;
+      const arena = scene.querySelector("#arena");
+      const deadpool = scene.querySelector("#deadpool");
+      if (!arena || !deadpool) return false;
+      arena.addEventListener("click", function() { bubbled = true; });
+      deadpool.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      return !bubbled;
+    }
+  },
+  {
+    id: 35,
+    topic: "capture phase",
+    title: "Misja 35: Faza przechwytywania",
+    objective: "Ustaw listener click na #arena z opcja { capture: true }. Gdy klikniecie ruszy przez DOM, listener ma zapisac arena.dataset.phase = 'capture-hit'.",
+    tips: ["Listener w capture odpala sie zanim zdarzenie dojdzie do kliknietego elementu.", "To pokazuje roznice miedzy capture i bubbling."],
+    starter: 'const arena = document.getElementById("arena");',
+    solution: 'const arena = document.getElementById("arena");\narena.addEventListener("click", () => {\n  arena.dataset.phase = "capture-hit";\n}, { capture: true });',
+    validate: function(scene) {
+      const arena = scene.querySelector("#arena");
+      const deadpool = scene.querySelector("#deadpool");
+      if (!arena || !deadpool) return false;
+      deadpool.addEventListener("click", function(e) { e.stopPropagation(); }, { once: true });
+      deadpool.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      return arena.dataset.phase === "capture-hit";
+    }
+  },
+  {
+    id: 36,
+    topic: "CustomEvent",
+    title: "Misja 36: Finalny sygnal",
+    objective: "Nasluchuj na #scene-root wlasnego zdarzenia 'hunt:complete'. Gdy to zdarzenie sie pojawi, ustaw tekst elementu #mission-status na 'Status: MISJA UKONCZONA'.",
+    tips: ["'hunt:complete' to nazwa wlasnego zdarzenia aplikacji, a nie wbudowanego click czy input.", "Obsluzysz je tak samo jak inne zdarzenia: przez addEventListener()."],
+    starter: 'const root = document.getElementById("scene-root");\nconst status = document.getElementById("mission-status");',
+    solution: 'const root = document.getElementById("scene-root");\nconst status = document.getElementById("mission-status");\nroot.addEventListener("hunt:complete", () => {\n  status.textContent = "Status: MISJA UKONCZONA";\n});',
+    validate: function(scene) {
+      const status = scene.querySelector("#mission-status");
+      scene.dispatchEvent(new CustomEvent("hunt:complete", { bubbles: true }));
+      return status && status.textContent.trim() === "Status: MISJA UKONCZONA";
+    }
+  },
+  {
+    id: 37,
+    topic: "closest",
+    title: "Misja 37: Znajdź karte po naglowku",
+    objective: "Krok 1: pobierz naglowek #venom h3. Krok 2: przez closest('.character') znajdź karte Venoma. Krok 3: ustaw na tej karcie atrybut data-found='yes'.",
+    tips: ["closest() idzie od elementu w gore po drzewie DOM i szuka najblizszego pasujacego przodka.", "Tutaj startujesz z h3, a chcesz dojsc do calej karty article.character."],
+    starter: 'const venomHeading = document.querySelector("#venom h3");',
+    solution: 'const venomHeading = document.querySelector("#venom h3");\nconst venomCard = venomHeading.closest(".character");\nvenomCard.setAttribute("data-found", "yes");',
+    validate: function(scene) {
+      const venom = scene.querySelector("#venom");
+      return venom && venom.getAttribute("data-found") === "yes";
+    }
+  },
+  {
+    id: 38,
+    topic: "parentElement",
+    title: "Misja 38: Wroc do rodzica",
+    objective: "Krok 1: pobierz paragraf #alien .status. Krok 2: przejdz do jego parentElement. Krok 3: dodaj temu rodzicowi klasę 'inspected'.",
+    tips: ["parentElement zwraca bezposredniego rodzica elementu.", "Rodzicem paragrafu .status jest karta postaci Alien."],
+    starter: 'const alienStatus = document.querySelector("#alien .status");',
+    solution: 'const alienStatus = document.querySelector("#alien .status");\nconst alienCard = alienStatus.parentElement;\nalienCard.classList.add("inspected");',
+    validate: function(scene) {
+      const alien = scene.querySelector("#alien");
+      return alien && alien.classList.contains("inspected");
+    }
+  },
+  {
+    id: 39,
+    topic: "children",
+    title: "Misja 39: Pracuj na dzieciach listy",
+    objective: "Krok 1: pobierz #squad-list. Krok 2: przez właściwość children znajdź trzeci element listy. Krok 3: dodaj mu klasę 'tagged'.",
+    tips: ["children zwraca dzieci-elementy bez tekstow i komentarzy.", "Trzeci element listy ma indeks 2."],
+    starter: 'const squadList = document.getElementById("squad-list");',
+    solution: 'const squadList = document.getElementById("squad-list");\nsquadList.children[2].classList.add("tagged");',
+    validate: function(scene) {
+      const third = scene.querySelector("#squad-list li:nth-child(3)");
+      return third && third.classList.contains("tagged");
+    }
+  },
+  {
+    id: 40,
+    topic: "disabled",
+    title: "Misja 40: Odblokuj przycisk",
+    objective: "Krok 1: pobierz przycisk #deploy-button. Krok 2: ustaw jego właściwość disabled na false, aby przycisk przestal być zablokowany.",
+    tips: ["disabled to właściwość logiczna elementu formularza.", "Nie ustawiasz tekstu - zmieniasz stan przycisku."],
+    starter: 'const deployButton = document.getElementById("deploy-button");',
+    solution: 'const deployButton = document.getElementById("deploy-button");\ndeployButton.disabled = false;',
+    validate: function(scene) {
+      const button = scene.querySelector("#deploy-button");
+      return button && button.disabled === false;
+    }
+  },
+  {
+    id: 41,
+    topic: "checked",
+    title: "Misja 41: Wlacz tryb stealth",
+    objective: "Krok 1: pobierz checkbox #stealth-mode. Krok 2: zaznacz go, ustawiajac checked = true.",
+    tips: ["checked to właściwość typu true/false dla checkboxa.", "Po zadaniu checkbox ma być zaznaczony."],
+    starter: 'const stealthMode = document.getElementById("stealth-mode");',
+    solution: 'const stealthMode = document.getElementById("stealth-mode");\nstealthMode.checked = true;',
+    validate: function(scene) {
+      const checkbox = scene.querySelector("#stealth-mode");
+      return checkbox && checkbox.checked === true;
+    }
+  },
+  {
+    id: 42,
+    topic: "selected",
+    title: "Misja 42: Zmien priorytet celu",
+    objective: "Krok 1: pobierz select #target-priority. Krok 2: ustaw w nim wybrana opcje 'high'.",
+    tips: ["Najprosciej ustawic select.value = 'high'.", "Po zmianie zaznaczona ma być opcja 'Wysoki'."],
+    starter: 'const priority = document.getElementById("target-priority");',
+    solution: 'const priority = document.getElementById("target-priority");\npriority.value = "high";',
+    validate: function(scene) {
+      const select = scene.querySelector("#target-priority");
+      return select && select.value === "high";
+    }
+  },
+  {
+    id: 43,
+    topic: "prepend",
+    title: "Misja 43: Dodaj lidera na poczatek",
+    objective: "Krok 1: utworz nowy element li z tekstem 'Blade' i atrybutem data-name='blade'. Krok 2: dodaj go na poczatek listy #squad-list przy pomocy prepend().",
+    tips: ["prepend() dodaje element na poczatku, a nie na koncu.", "Po wykonaniu zadania Blade ma być pierwszym elementem listy."],
+    starter: 'const squadList = document.getElementById("squad-list");',
+    solution: 'const squadList = document.getElementById("squad-list");\nconst li = document.createElement("li");\nli.textContent = "Blade";\nli.setAttribute("data-name", "blade");\nsquadList.prepend(li);',
+    validate: function(scene) {
+      const first = scene.querySelector("#squad-list li:first-child");
+      return first && first.getAttribute("data-name") === "blade" && first.textContent.trim() === "Blade";
+    }
+  },
+  {
+    id: 44,
+    topic: "before",
+    title: "Misja 44: Briefing przed arena",
+    objective: "Krok 1: utworz paragraf o id 'briefing-note' z tekstem 'Briefing przed arena'. Krok 2: wstaw go bezposrednio przed #arena przy pomocy metody before().",
+    tips: ["Metode before() wywolujesz na elemencie, przed ktorym chcesz cos wstawic.", "Tutaj arena.before(nowyParagraf)."],
+    starter: 'const arena = document.getElementById("arena");',
+    solution: 'const arena = document.getElementById("arena");\nconst note = document.createElement("p");\nnote.id = "briefing-note";\nnote.textContent = "Briefing przed arena";\narena.before(note);',
+    validate: function(scene) {
+      const arena = scene.querySelector("#arena");
+      const note = scene.querySelector("#briefing-note");
+      return arena && note && note.nextElementSibling === arena;
+    }
+  },
+  {
+    id: 45,
+    topic: "after",
+    title: "Misja 45: Raport po walce",
+    objective: "Krok 1: utworz paragraf o id 'after-action'. Krok 2: ustaw jego tekst na 'Raport po walce'. Krok 3: wstaw go bezposrednio za #arena przy pomocy after().",
+    tips: ["after() wstawia element zaraz po wskazanym elemencie.", "Tutaj nowy paragraf ma być tuz za arena, a przed sekcja paneli."],
+    starter: 'const arena = document.getElementById("arena");',
+    solution: 'const arena = document.getElementById("arena");\nconst note = document.createElement("p");\nnote.id = "after-action";\nnote.textContent = "Raport po walce";\narena.after(note);',
+    validate: function(scene) {
+      const arena = scene.querySelector("#arena");
+      return arena && arena.nextElementSibling && arena.nextElementSibling.id === "after-action";
+    }
+  },
+  {
+    id: 46,
+    topic: "removeChild",
+    title: "Misja 46: Usun pierwszy raport",
+    objective: "Krok 1: pobierz liste #archive-list. Krok 2: przez removeChild() usun z niej pierwszy element li.",
+    tips: ["removeChild() wywolujesz na rodzicu i przekazujesz dziecko do usuniecia.", "Najpierw pobierz archiveList.firstElementChild, a potem usun go z listy."],
+    starter: 'const archiveList = document.getElementById("archive-list");',
+    solution: 'const archiveList = document.getElementById("archive-list");\narchiveList.removeChild(archiveList.firstElementChild);',
+    validate: function(scene) {
+      const archiveList = scene.querySelector("#archive-list");
+      if (!archiveList) return false;
+      return archiveList.children.length === 2 && archiveList.children[0].textContent.trim() === "raport-beta";
+    }
+  }
+];
+
+const METHOD_GUIDES = {
+  "getElementById": {
+    summary: "Pobiera jeden element po jego id. To dobra metoda, gdy znasz dokladne id elementu.",
+    example: 'const el = document.getElementById("deadpool");'
+  },
+  "querySelector": {
+    summary: "Zwraca tylko pierwszy element pasujacy do selektora CSS (albo null, jesli nic nie znaleziono).",
+    example: 'const el = document.querySelector("#venom .status");'
+  },
+  "querySelectorAll": {
+    summary: "Zwraca wszystkie pasujace elementy jako NodeList (lista statyczna), a nie pojedynczy element.",
+    example: 'const list = document.querySelectorAll(".character");'
+  },
+  "getElementsByClassName": {
+    summary: "Pobiera elementy po klasie jako HTMLCollection. To kolekcja wielu elementow, nie pojedynczy element.",
+    example: 'const items = document.getElementsByClassName("hunter");'
+  },
+  "closest": {
+    summary: "Szuka najblizszego przodka pasujacego do selektora, zaczynajac od aktualnego elementu i idac w gore drzewa DOM.",
+    example: 'const card = heading.closest(".character");'
+  },
+  "parentElement": {
+    summary: "Zwraca bezposredniego rodzica danego elementu.",
+    example: 'const parent = status.parentElement;'
+  },
+  "children": {
+    summary: "Zwraca kolekcje dzieci-elementow znajdujacych sie bezposrednio wewnatrz rodzica.",
+    example: 'const third = list.children[2];'
+  },
+  "classList.add": {
+    summary: "Dodaje klasę CSS do elementu.",
+    example: 'panel.classList.add("active");'
+  },
+  "classList.remove": {
+    summary: "Usuwa klasę CSS z elementu.",
+    example: 'deadpool.classList.remove("mutant");'
+  },
+  "classList.toggle": {
+    summary: "Przelacza klasę: dodaje albo usuwa.",
+    example: 'item.classList.toggle("tagged");'
+  },
+  "classList.contains": {
+    summary: "Sprawdza, czy element ma dana klasę.",
+    example: 'deadpool.classList.contains("antihero");'
+  },
+  "setAttribute": {
+    summary: "Ustawia atrybut na elemencie.",
+    example: 'status.setAttribute("data-ready", "yes");'
+  },
+  "getAttribute": {
+    summary: "Odczytuje wartość atrybutu.",
+    example: 'alien.getAttribute("data-threat");'
+  },
+  "dataset write": {
+    summary: "Ustawia atrybut data-* przez obiekt dataset.",
+    example: 'venom.dataset.ready = "true";'
+  },
+  "dataset read": {
+    summary: "Czyta atrybut data-* przez obiekt dataset.",
+    example: 'deadpool.dataset.faction;'
+  },
+  "disabled": {
+    summary: "Steruje tym, czy element formularza jest aktywny czy zablokowany.",
+    example: 'button.disabled = false;'
+  },
+  "checked": {
+    summary: "Steruje stanem zaznaczenia checkboxa albo radio buttona.",
+    example: 'checkbox.checked = true;'
+  },
+  "selected": {
+    summary: "Pozwala wybrac opcje w elemencie select, najczesciej przez ustawienie select.value.",
+    example: 'select.value = "high";'
+  },
+  "createElement + append": {
+    summary: "Tworzy nowy element i dopina go do DOM.",
+    example: 'const li = document.createElement("li");\nlist.append(li);'
+  },
+  "prepend": {
+    summary: "Dodaje nowy element na poczatku zawartośći wskazanego rodzica.",
+    example: 'list.prepend(li);'
+  },
+  "before": {
+    summary: "Wstawia nowy element bezposrednio przed wskazanym elementem.",
+    example: 'arena.before(note);'
+  },
+  "after": {
+    summary: "Wstawia nowy element bezposrednio za wskazanym elementem.",
+    example: 'arena.after(note);'
+  },
+  "insertBefore": {
+    summary: "Wstawia element przed innym elementem.",
+    example: 'root.insertBefore(note, arena);'
+  },
+  "remove": {
+    summary: "Usuwa element z DOM.",
+    example: 'predator.remove();'
+  },
+  "removeChild": {
+    summary: "Usuwa wskazane dziecko z rodzica. Metode wywolujesz na rodzicu, a nie na samym dziecku.",
+    example: 'list.removeChild(list.firstElementChild);'
+  },
+  "addEventListener click": {
+    summary: "Dodaje reakcje na klikniecie.",
+    example: 'button.addEventListener("click", handler);'
+  },
+  "addEventListener input": {
+    summary: "Dodaje reakcje na wpisywanie do inputa.",
+    example: 'input.addEventListener("input", handler);'
+  },
+  "event delegation": {
+    summary: "Ustawia jeden listener na rodzicu i obsluguje dzieci przez event.target.",
+    example: 'list.addEventListener("click", (event) => {\n  if (event.target.matches("li")) { }\n});'
+  },
+  "addEventListener once": {
+    summary: "Listener wykona sie tylko raz.",
+    example: 'button.addEventListener("click", handler, { once: true });'
+  },
+  "removeEventListener": {
+    summary: "Usuwa wczesniej podpiety listener.",
+    example: 'button.removeEventListener("click", panicHandler);'
+  },
+  "stopPropagation": {
+    summary: "Zatrzymuje propagacje zdarzenia do rodzicow.",
+    example: 'event.stopPropagation();'
+  },
+  "capture phase": {
+    summary: "Ustawia listener w fazie przechwytywania, zanim event dotrze do targetu.",
+    example: 'arena.addEventListener("click", handler, { capture: true });'
+  },
+  "CustomEvent": {
+    summary: "Obsluguje lub tworzy wlasne zdarzenia aplikacji.",
+    example: 'root.addEventListener("hunt:complete", handler);'
+  }
+};
+
+const TOPIC_BEGINNER_TIPS = {
+  "getElementById": [
+    "W getElementById podajesz samo id bez znaku #, np. 'deadpool'.",
+    "Ta metoda zwraca jeden element albo null, gdy nic nie znajdzie."
+  ],
+  "querySelector": [
+    "querySelector przyjmuje selektor CSS zapisany jako tekst.",
+    "#(hash) oznacza id, .(kropka) oznacza klasę, a spacja oznacza element wewnatrz innego elementu.",
+    "Jesli selektor pasuje do kilku elementow, dostaniesz tylko pierwszy z nich."
+  ],
+  "querySelectorAll": [
+    "querySelectorAll zwraca liste elementow, wiec zwykle trzeba użyć petli albo forEach().",
+    "Przecinek w selektorze oznacza: znajdź elementy pasujace do pierwszego albo drugiego fragmentu."
+  ],
+  "getElementsByClassName": [
+    "getElementsByClassName zwraca HTMLCollection, czyli kolekcje wielu elementow.",
+    "Do pojedynczego elementu z tej kolekcji dostajesz sie np. przez [0] albo [1]."
+  ],
+  "closest": [
+    "closest() jest przydatne, gdy startujesz od dziecka i chcesz dojsc do najblizszego pasujacego rodzica."
+  ],
+  "parentElement": [
+    "parentElement zwraca tylko bezposredniego rodzica, jeden poziom wyzej."
+  ],
+  "children": [
+    "children zwraca same elementy-dzieci bez tekstow i komentarzy.",
+    "Elementy w children pobierasz po indeksie: 0, 1, 2..."
+  ],
+  "classList.add": [
+    "classList.add() dodaje klasę, ale nie usuwa innych klas elementu."
+  ],
+  "classList.remove": [
+    "classList.remove() usuwa tylko wskazana klasę, reszta klas zostaje bez zmian."
+  ],
+  "classList.toggle": [
+    "toggle() dziala jak przelacznik: jesli klasy nie ma, doda ja; jesli jest, usunie ja."
+  ],
+  "classList.contains": [
+    "contains() nic nie zmienia w DOM. Ona tylko sprawdza i zwraca true albo false."
+  ],
+  "setAttribute": [
+    "setAttribute() ustawia atrybut jako tekst, np. data-ready='yes'."
+  ],
+  "getAttribute": [
+    "getAttribute() odczytuje wartość atrybutu jako tekst."
+  ],
+  "dataset write": [
+    "dataset.ready = 'true' odpowiada atrybutowi data-ready='true'."
+  ],
+  "dataset read": [
+    "dataset.faction odczytuje wartość z atrybutu data-faction."
+  ],
+  "disabled": [
+    "disabled = true blokuje element formularza, a disabled = false go odblokowuje."
+  ],
+  "checked": [
+    "checked przyjmuje wartość logiczna true albo false."
+  ],
+  "selected": [
+    "Najwygodniej zmienic wybrana opcje przez ustawienie value na select."
+  ],
+  "createElement + append": [
+    "Najpierw tworzysz element, potem ustawiasz mu tekst, klasy albo atrybuty, a na koncu dodajesz go do DOM."
+  ],
+  "prepend": [
+    "prepend() dodaje nowy element na poczatek zawartośći rodzica."
+  ],
+  "before": [
+    "before() wywolujesz na elemencie, przed ktorym chcesz cos wstawic."
+  ],
+  "after": [
+    "after() wywolujesz na elemencie, za ktorym chcesz cos wstawic."
+  ],
+  "insertBefore": [
+    "insertBefore() wywolujesz na rodzicu: parent.insertBefore(nowyElement, elementOdniesienia)."
+  ],
+  "remove": [
+    "remove() calkowicie usuwa element z drzewa DOM."
+  ],
+  "removeChild": [
+    "removeChild() wywolujesz na rodzicu i przekazujesz mu dziecko do usuniecia."
+  ],
+  "addEventListener click": [
+    "Listener click odpala funkcje po kliknieciu elementu."
+  ],
+  "addEventListener input": [
+    "Zdarzenie input odpala sie podczas wpisywania do pola tekstowego."
+  ],
+  "event delegation": [
+    "Delegacja oznacza, ze listener wieszasz na rodzicu, a klikniete dziecko rozpoznajesz przez event.target."
+  ],
+  "addEventListener once": [
+    "Opcja { once: true } sprawia, ze listener sam usunie sie po pierwszym wywolaniu."
+  ],
+  "removeEventListener": [
+    "Aby removeEventListener zadzialalo, musisz przekazac te sama funkcje, ktora byla dodana."
+  ],
+  "stopPropagation": [
+    "stopPropagation() zatrzymuje przechodzenie zdarzenia do rodzicow w fazie bubbling."
+  ],
+  "capture phase": [
+    "Capture to faza, w ktorej zdarzenie schodzi od rodzica do dziecka, zanim dotrze do kliknietego elementu."
+  ],
+  "CustomEvent": [
+    "CustomEvent pozwala tworzyc wlasne zdarzenia, np. 'hunt:complete'."
+  ]
+};
+
+const SCENE_SELECTOR_GUIDES = {
+  "#scene-root": "glowny kontener calej sceny. To w nim renderowane sa arena i panele.",
+  "#arena": "sekcja z kartami postaci. To glowny obszar sceny DOM.",
+  "#deadpool": "karta postaci Deadpoola. To element <article> w sekcji #arena.",
+  "#predator": "karta postaci Predatora. To element <article> w sekcji #arena.",
+  "#pennywise": "karta postaci Pennywise'a. To element <article> w sekcji #arena.",
+  "#alien": "karta postaci Aliena. To element <article> w sekcji #arena.",
+  "#venom": "karta postaci Venoma. To element <article> w sekcji #arena.",
+  "#venom .status": "paragraf <p class=\"status\"> znajdujacy sie wewnatrz karty Venoma.",
+  "#alert-panel": "panel alarmu. To element <div> w sekcji narzedzi.",
+  "#panic-button": "przycisk 'Panika!'. To element <button>.",
+  "#panic-count": "licznik klikniec obok przycisku 'Panika!'. To element <span>.",
+  "#codeword": "pole tekstowe do wpisywania kodu operacyjnego. To element <input>.",
+  "#codeword-preview": "paragraf pokazujacy podglad wpisanego kodu.",
+  "#ops-form": "formularz z kontrolkami do cwiczen disabled, checked i selected.",
+  "#stealth-mode": "checkbox formularza. Mozna go zaznaczyc przez checked = true.",
+  "#target-priority": "pole select z opcjami priorytetu celu.",
+  "#deploy-button": "przycisk formularza startowo zablokowany przez disabled.",
+  "#squad-list": "lista druzyny. To element <ul> z elementami <li> w srodku.",
+  "#squad-list li": "elementy listy <li> znajdujace sie wewnatrz #squad-list.",
+  "#archive-list": "lista raportów przygotowana do cwiczenia removeChild().",
+  "#mission-status": "paragraf statusu misji w ostatnim panelu.",
+  "#intel-feed": "lista raportów wywiadu. To element <ul> na wpisy <li>.",
+  ".character": "wszystkie karty postaci. Kazda z nich jest elementem <article>.",
+  ".panel": "kazdy panel w sekcji narzedzi. To element <div class=\"panel\">.",
+  ".status": "paragraf z opisem stanu postaci wewnatrz karty.",
+  ".hunter": "elementy oznaczone klasa hunter. W bazowej scenie to np. Predator.",
+  ".xeno, .symbiote": "dwie karty postaci: Alien (.xeno) oraz Venom (.symbiote)."
+};
+
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function formatObjectiveText(text) {
+  const normalized = String(text)
+    .replace(/^\s+|\s+$/g, "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\n\s*/g, "\n")
+    .replace(/\s*(Krok\s+\d+:)/g, function(match, label, offset) {
+      return offset === 0 ? label : "\n" + label;
+    });
+
+  return escapeHtml(normalized).replace(/\n/g, "<br>");
+}
+
+function getMethodGuide(topic) {
+  if (METHOD_GUIDES[topic]) return METHOD_GUIDES[topic];
+  return {
+    summary: "Uzyj metody lub techniki wskazanej w temacie misji i zastosuj ja bezposrednio na elementach sceny DOM.",
+    example: "// Przyklad dopasuj samodzielnie do tej misji"
+  };
+}
+
+function uniqueList(items) {
+  const seen = Object.create(null);
+  const out = [];
+  for (let i = 0; i < items.length; i++) {
+    const key = items[i];
+    if (!seen[key]) {
+      seen[key] = true;
+      out.push(key);
+    }
+  }
+  return out;
+}
+
+function extractTargetsFromObjective(objective) {
+  const selectors = [];
+  const quotedSelectors = objective.matchAll(/["'`](#[^"'`]*|\.[^"'`]*)(?=["'`])/g);
+  const disallowedTokens = {
+    ".getElementById": true,
+    ".querySelector": true,
+    ".querySelectorAll": true,
+    ".getElementsByClassName": true,
+    ".classList": true,
+    ".addEventListener": true,
+    ".removeEventListener": true,
+    ".setAttribute": true,
+    ".getAttribute": true,
+    ".textContent": true,
+    ".dataset": true,
+    ".style": true
+  };
+
+  for (const quotedMatch of quotedSelectors) {
+    const selectorExpression = quotedMatch[1].trim();
+    if (selectorExpression && !disallowedTokens[selectorExpression]) {
+      selectors.push(selectorExpression);
+    }
+  }
+
+  const matches = objective.matchAll(/[#.][a-zA-Z0-9_-]+/g);
+
+  for (const match of matches) {
+    const token = match[0];
+    const idx = match.index || 0;
+    const prevChar = idx > 0 ? objective.charAt(idx - 1) : "";
+
+    // Token jest selektorem tylko wtedy, gdy nie jest doklejony do nazwy metody, np. document.getElementById.
+    if (/[a-zA-Z0-9_-]/.test(prevChar)) {
+      continue;
+    }
+
+    if (disallowedTokens[token]) {
+      continue;
+    }
+
+    selectors.push(token);
+  }
+
+  return uniqueList(selectors);
+}
+
+function matchObjectivePattern(objective, patterns) {
+  for (let i = 0; i < patterns.length; i++) {
+    const match = objective.match(patterns[i]);
+    if (match) return match;
+  }
+  return null;
+}
+
+function detectSecondaryOperations(objective) {
+  const ops = [];
+  const valueMatch = matchObjectivePattern(objective, [
+    /ustaw\s+(?:jego\s+)?value\s+na\s+['"]([^'"]+)['"]/i,
+    /wpisz(?:\s+do\s+niego)?\s+wartość\s+['"]([^'"]+)['"].*?value/i,
+    /value\s*=\s*['"]([^'"]+)['"]/i
+  ]);
+  if (valueMatch) {
+    ops.push({
+      label: "value",
+      summary: "Ustawia wartość pola formularza (np. input).",
+      example: 'element.value = "' + valueMatch[1] + '";'
+    });
+  }
+
+  let textContentMatch = matchObjectivePattern(objective, [
+    /textContent\s+na\s+['"]([^'"]+)['"]/i,
+    /ustaw\s+(?:jego\s+)?textContent\s+na\s+['"]([^'"]+)['"]/i,
+    /ustaw\s+tekst[^'"]*?na\s+['"]([^'"]+)['"]/i,
+    /wpisz[^'"]*?do[^'"]*?w\s+formie\s+tekstu\s+['"]([^'"]+)['"]/i
+  ]);
+  if (!textContentMatch) {
+    textContentMatch = objective.match(/ustaw jego textContent na ['"]([^'"]+)['"]/i);
+  }
+  if (textContentMatch) {
+    ops.push({
+      label: "textContent",
+      summary: "Podmienia tekst wewnatrz elementu.",
+      example: 'element.textContent = "' + textContentMatch[1] + '";'
+    });
+  }
+
+  const addClassMatch = matchObjectivePattern(objective, [
+    /dodaj(?:\s+[^\s'.]+){0,4}\s+klasę\s+['"]?([a-zA-Z0-9_-]+)['"]?/i,
+    /classList\.add\(\s*['"]([a-zA-Z0-9_-]+)['"]\s*\)/i
+  ]);
+  if (addClassMatch) {
+    ops.push({
+      label: "classList.add",
+      summary: "Dodaje nowa klasę CSS do elementu.",
+      example: 'element.classList.add("' + addClassMatch[1] + '");'
+    });
+  }
+
+  const removeClassMatch = matchObjectivePattern(objective, [
+    /usun(?:\s+[^\s'.]+){0,4}\s+klasę\s+['"]?([a-zA-Z0-9_-]+)['"]?/i,
+    /classList\.remove\(\s*['"]([a-zA-Z0-9_-]+)['"]\s*\)/i
+  ]);
+  if (removeClassMatch) {
+    ops.push({
+      label: "classList.remove",
+      summary: "Usuwa klasę CSS z elementu.",
+      example: 'element.classList.remove("' + removeClassMatch[1] + '");'
+    });
+  }
+
+  const toggleClassMatch = matchObjectivePattern(objective, [
+    /przelacz(?:\s+[^\s'.]+){0,4}\s+klasę\s+['"]?([a-zA-Z0-9_-]+)['"]?/i,
+    /classList\.toggle\(\s*['"]([a-zA-Z0-9_-]+)['"]\s*\)/i
+  ]);
+  if (toggleClassMatch) {
+    ops.push({
+      label: "classList.toggle",
+      summary: "Przelacza klasę: dodaje lub usuwa ja przy kolejnym wywolaniu.",
+      example: 'element.classList.toggle("' + toggleClassMatch[1] + '");'
+    });
+  }
+
+  const attrMatch = matchObjectivePattern(objective, [
+    /atrybut\s+([a-zA-Z0-9_-]+)=['"]([^'"]+)['"]/i,
+    /atrybut\s+([a-zA-Z0-9_-]+)\s+o\s+wartośći\s+['"]([^'"]+)['"]/i
+  ]);
+  if (attrMatch) {
+    ops.push({
+      label: "setAttribute",
+      summary: "Ustawia wskazany atrybut i jego wartość.",
+      example: 'element.setAttribute("' + attrMatch[1] + '", "' + attrMatch[2] + '");'
+    });
+  }
+
+  const styleMatch = matchObjectivePattern(objective, [
+    /style\.([a-zA-Z]+)\s*=\s*['"]([^'"]+)['"]/i,
+    /style\.([a-zA-Z]+)\s+na\s+['"]([^'"]+)['"]/i
+  ]);
+  if (styleMatch) {
+    ops.push({
+      label: "style",
+      summary: "Ustawia styl inline bezposrednio na elemencie.",
+      example: 'element.style.' + styleMatch[1] + ' = "' + styleMatch[2] + '";'
+    });
+  }
+
+  if (/usun go ze sceny|\busun\b/i.test(objective) && /#/.test(objective)) {
+    ops.push({
+      label: "remove",
+      summary: "Usuwa element z drzewa DOM.",
+      example: "element.remove();"
+    });
+  }
+
+  if (/listener|nasluchuj|addEventListener/i.test(objective)) {
+    ops.push({
+      label: "addEventListener",
+      summary: "Podpina funkcje, ktora wykona sie po zdarzeniu.",
+      example: 'element.addEventListener("click", handler);'
+    });
+  }
+
+  if (/\bonce\b/i.test(objective)) {
+    ops.push({
+      label: "once",
+      summary: "Opcja listenera: zdarzenie obsluzy sie tylko raz.",
+      example: 'element.addEventListener("click", handler, { once: true });'
+    });
+  }
+
+  if (/capture/i.test(objective)) {
+    ops.push({
+      label: "capture",
+      summary: "Listener dziala w fazie przechwytywania.",
+      example: 'element.addEventListener("click", handler, { capture: true });'
+    });
+  }
+
+  return ops;
+}
+
+function getTopicBeginnerTips(topic) {
+  return TOPIC_BEGINNER_TIPS[topic] ? TOPIC_BEGINNER_TIPS[topic].slice() : [];
+}
+
+function getSelectorGuideText(selector) {
+  if (SCENE_SELECTOR_GUIDES[selector]) return SCENE_SELECTOR_GUIDES[selector];
+  if (selector.indexOf(",") !== -1) {
+    return "To kilka selektorow oddzielonych przecinkiem. Element pasuje, jezeli spelnia przynajmniej jeden z nich.";
+  }
+  if (selector.indexOf(" ") !== -1) {
+    return "To selektor zagniezdzony. Fragment po prawej musi znajdowac sie wewnatrz fragmentu po lewej.";
+  }
+  if (selector.indexOf(":nth-child(") !== -1) {
+    return "To selektor pozycyjny. Pozwala wskazac element na konkretnej pozycji w liscie rodzenstwa.";
+  }
+  return "To selektor CSS uzywany do znalezienia elementu w drzewie DOM.";
+}
+
+function renderOperationsHtml(operations) {
+  if (!operations.length) return "";
+  let html = '<div class="method-ops"><p><strong>Co jeszcze trzeba użyć:</strong></p>';
+  for (let i = 0; i < operations.length; i++) {
+    html += '<div class="method-op-item"><p><strong>' + escapeHtml(operations[i].label) + ':</strong> ' + escapeHtml(operations[i].summary) + '</p><pre class="method-example">' + escapeHtml(operations[i].example) + '</pre></div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function buildMissionObjectiveHtml(current) {
+  const guide = getMethodGuide(current.topic);
+  const operations = detectSecondaryOperations(current.objective);
+  let html = '<strong>Polecenie:</strong><br>' + formatObjectiveText(current.objective);
+  html += '<div class="method-guide"><p><strong>Co użyć w tej misji:</strong></p>';
+  html += '<p><strong>' + escapeHtml(current.topic) + ':</strong> ' + escapeHtml(guide.summary) + '</p><pre class="method-example">' + escapeHtml(guide.example) + '</pre>';
+  html += renderOperationsHtml(operations);
+  html += '</div>';
+  return html;
+}
+
+/* ============================================================
+   SILNIK GRY
+   ============================================================ */
+
+const STORAGE_KEY = "dom-hunters-progress-v1";
+
+const missionTitle     = document.getElementById("mission-title");
+const missionTopic     = document.getElementById("mission-topic");
+const missionDifficulty = document.getElementById("mission-difficulty");
+const missionObjective = document.getElementById("mission-objective");
+const missionTips      = document.getElementById("mission-tips");
+const missionIndex     = document.getElementById("mission-index");
+const missionTotal     = document.getElementById("mission-total");
+const completedCount   = document.getElementById("completed-count");
+const progressBarFill  = document.getElementById("progress-bar-fill");
+const progressPercent  = document.getElementById("progress-percent");
+const finishStatus     = document.getElementById("finish-status");
+const codeInput        = document.getElementById("code-input");
+const runBtn           = document.getElementById("run-btn");
+const nextBtn          = document.getElementById("next-btn");
+const solutionBtn      = document.getElementById("solution-btn");
+const resetBtn         = document.getElementById("reset-progress");
+const examToggleBtn    = document.getElementById("exam-toggle");
+const randomSceneBtn   = document.getElementById("random-scene-btn");
+const finishGameBtn    = document.getElementById("finish-game");
+const consoleOutput    = document.getElementById("console-output");
+const sceneRoot        = document.getElementById("scene-root");
+const missionFilterList = document.getElementById("mission-filter-list");
+const missionNavList   = document.getElementById("mission-nav-list");
+const domInspectorTip  = createDomInspectorTip();
+
+let state = loadState();
+missionTotal.textContent = String(missions.length);
+
+function loadState() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return { currentMission: 0, completed: [], examMode: false, missionFilter: "all" };
+  try {
+    const parsed = JSON.parse(raw);
+    return {
+      currentMission: Number(parsed.currentMission) || 0,
+      completed: Array.isArray(parsed.completed) ? parsed.completed : [],
+      examMode: Boolean(parsed.examMode),
+      missionFilter: typeof parsed.missionFilter === "string" ? parsed.missionFilter : "all"
+    };
+  } catch(e) {
+    return { currentMission: 0, completed: [], examMode: false, missionFilter: "all" };
+  }
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function uniqueCompletedCount() {
+  return new Set(state.completed).size;
+}
+
+function progressPercentValue() {
+  return Math.round((uniqueCompletedCount() / missions.length) * 100);
+}
+
+function isGameComplete() {
+  return uniqueCompletedCount() === missions.length;
+}
+
+function getHighestUnlockedIndex() {
+  let highestCompletedIndex = -1;
+  for (let i = 0; i < state.completed.length; i++) {
+    const missionId = state.completed[i];
+    highestCompletedIndex = Math.max(highestCompletedIndex, missionId - 1);
+  }
+  return Math.min(Math.max(highestCompletedIndex + 1, 0), missions.length - 1);
+}
+
+function isMissionUnlocked(index) {
+  if (index === state.currentMission) return true;
+  if (state.completed.indexOf(index + 1) !== -1) return true;
+  return index <= getHighestUnlockedIndex();
+}
+
+function getMissionCategory(topic) {
+  if (/getElementById|getElementsByClassName|querySelector|querySelectorAll|closest|parentElement|children/i.test(topic)) return "selectors";
+  if (/classList|setAttribute|getAttribute|dataset|disabled|checked|selected/i.test(topic)) return "attributes";
+  if (/createElement|append|prepend|before|after|insertBefore|remove$|removeChild/i.test(topic)) return "dom-build";
+  return "events";
+}
+
+function getMissionDifficulty(mission) {
+  if (mission.id <= 16) return { label: "Latwe", key: "easy" };
+  if (mission.id <= 32) return { label: "Srednie", key: "medium" };
+  return { label: "Trudne", key: "hard" };
+}
+
+function getFilterLabel(filter) {
+  const labels = {
+    all: "Wszystkie",
+    selectors: "Selektory",
+    attributes: "Klasy i atrybuty",
+    "dom-build": "Tworzenie DOM",
+    events: "Zdarzenia"
+  };
+  return labels[filter] || filter;
+}
+
+function getFilterCount(filter) {
+  if (filter === "all") return missions.length;
+  let count = 0;
+  for (let i = 0; i < missions.length; i++) {
+    if (getMissionCategory(missions[i].topic) === filter) count += 1;
+  }
+  return count;
+}
+
+function matchesMissionFilter(mission) {
+  if (state.missionFilter === "all") return true;
+  return getMissionCategory(mission.topic) === state.missionFilter;
+}
+
+function renderMissionFilterButtons() {
+  const buttons = missionFilterList.querySelectorAll(".mission-filter");
+  buttons.forEach(function(button) {
+    button.classList.toggle("active", button.dataset.filter === state.missionFilter);
+    button.textContent = getFilterLabel(button.dataset.filter) + " (" + getFilterCount(button.dataset.filter) + ")";
+  });
+}
+
+function setConsole(kind, text) {
+  consoleOutput.classList.remove("ok", "err");
+  if (kind === "ok") consoleOutput.classList.add("ok");
+  if (kind === "err") consoleOutput.classList.add("err");
+  consoleOutput.textContent = text;
+}
+
+function renderMissionNavigator() {
+  missionNavList.innerHTML = "";
+  for (let i = 0; i < missions.length; i++) {
+    const mission = missions[i];
+    if (!matchesMissionFilter(mission)) continue;
+    const difficulty = getMissionDifficulty(mission);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "mission-chip";
+    if (i === state.currentMission) btn.classList.add("active");
+    if (state.completed.indexOf(mission.id) !== -1) btn.classList.add("completed");
+    if (!isMissionUnlocked(i)) {
+      btn.classList.add("locked");
+      btn.disabled = true;
+    }
+    btn.dataset.index = String(i);
+    btn.innerHTML = '<span class="mission-chip-number">' + mission.id + '</span><span class="mission-chip-label">' + escapeHtml(mission.topic) + '</span><span class="mission-chip-difficulty ' + difficulty.key + '">' + difficulty.label + '</span>';
+    missionNavList.appendChild(btn);
+  }
+
+  const activeChip = missionNavList.querySelector(".mission-chip.active");
+  if (activeChip) {
+    activeChip.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
+  }
+}
+
+function updateProgressUi() {
+  const completed = uniqueCompletedCount();
+  completedCount.textContent = String(completed);
+  progressBarFill.style.width = progressPercentValue() + "%";
+  progressPercent.textContent = progressPercentValue() + "%";
+  finishGameBtn.disabled = !isGameComplete();
+  finishStatus.textContent = isGameComplete()
+    ? "Masz 100%. Mozesz zakonczyc gre."
+    : "Do zakonczenia gry potrzebujesz 100%.";
+  renderMissionFilterButtons();
+  renderMissionNavigator();
+}
+
+function createDomInspectorTip() {
+  const el = document.createElement("div");
+  el.className = "dom-inspector-tip";
+  el.setAttribute("aria-hidden", "true");
+  document.body.appendChild(el);
+  return el;
+}
+
+function formatAttributesLine(el) {
+  if (!el || !el.attributes || !el.attributes.length) return '<span class="insp-empty">(brak atrybutow)</span>';
+  const pairs = [];
+  for (let i = 0; i < el.attributes.length; i++) {
+    const attr = el.attributes[i];
+    let value = attr.value;
+    if (attr.name === "src" && value.indexOf("data:image/svg+xml") === 0) {
+      value = "data:image/svg+xml,...";
+    }
+    pairs.push('<span class="insp-attr">' + attr.name + '</span>=<span class="insp-value">"' + escapeHtml(value) + '"</span>');
+  }
+  return pairs.join(" ");
+}
+
+function buildInspectorText(target) {
+  const character = target.closest(".character");
+  if (!character) return "";
+  const image = character.querySelector("img");
+  let html = '';
+  
+  // AKTYWNY ELEMENT
+  html += '<div class="insp-section"><div class="insp-label">AKTYWNY:</div>';
+  html += '<div class="insp-tag"><span class="insp-bracket">&lt;</span><span class="insp-name">' + target.tagName.toLowerCase() + '</span> ';
+  html += formatAttributesLine(target);
+  html += '<span class="insp-bracket">&gt;</span>';
+  if (target.textContent && target.textContent.trim().length < 50) {
+    html += '<span class="insp-text"> ' + escapeHtml(target.textContent.trim()) + '</span>';
+  }
+  html += '</div></div>';
+  
+  // OBRAZEK
+  if (image && image !== target) {
+    html += '<div class="insp-section" style="margin-top: 8px;"><div class="insp-label">OBRAZEK:</div>';
+    html += '<div class="insp-tag"><span class="insp-bracket">&lt;</span><span class="insp-name">img</span> ';
+    html += formatAttributesLine(image);
+    html += '<span class="insp-bracket"> /&gt;</span></div></div>';
+  }
+  
+  // KARTA
+  if (character !== target) {
+    html += '<div class="insp-section" style="margin-top: 8px;"><div class="insp-label">KARTA:</div>';
+    html += '<div class="insp-tag"><span class="insp-bracket">&lt;</span><span class="insp-name">article</span> ';
+    html += formatAttributesLine(character);
+    html += '<span class="insp-bracket">&gt;</span></div>';
+    
+    // Dzieci karty
+    const children = Array.from(character.children).slice(0, 4);
+    if (children.length > 0) {
+      html += '<div class="insp-children" style="margin-left: 16px; margin-top: 4px; border-left: 1px solid rgba(230, 239, 255, 0.2); padding-left: 8px;">';
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i];
+        const tagName = child.tagName.toLowerCase();
+        const classList = child.className ? ' class="' + child.className + '"' : '';
+        const text = child.textContent ? child.textContent.trim().substring(0, 40) : '';
+        const textDisplay = text ? '<span class="insp-text"> ' + escapeHtml(text) + (text.length >= 40 ? '...' : '') + '</span>' : '';
+        html += '<div class="insp-tag"><span class="insp-bracket">&lt;</span><span class="insp-name">' + tagName + '</span>';
+        if (classList) html += '<span class="insp-attr"> class</span>=<span class="insp-value">"' + escapeHtml(child.className) + '"</span>';
+        html += '<span class="insp-bracket">&gt;</span>' + textDisplay + '</div>';
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  
+  return html;
+}
+
+function moveInspectorTip(event) {
+  domInspectorTip.style.left = (event.clientX + 16) + "px";
+  domInspectorTip.style.top = (event.clientY + 16) + "px";
+}
+
+function attachDomInspector() {
+  sceneRoot.addEventListener("mousemove", function(event) {
+    const inspectTarget = event.target.closest(".character, .character img");
+    if (!inspectTarget || !sceneRoot.contains(inspectTarget)) {
+      domInspectorTip.classList.remove("visible");
+      return;
+    }
+    domInspectorTip.innerHTML = buildInspectorText(inspectTarget);
+    moveInspectorTip(event);
+    domInspectorTip.classList.add("visible");
+  });
+
+  sceneRoot.addEventListener("mouseleave", function() {
+    domInspectorTip.classList.remove("visible");
+  });
+}
+
+function applyExamMode() {
+  const active = state.examMode;
+  examToggleBtn.textContent = active ? "Wylacz tryb egzaminu" : "Tryb egzaminu";
+  examToggleBtn.dataset.active = String(active);
+  missionTips.style.display = active ? "none" : "";
+  solutionBtn.style.display = active ? "none" : "";
+}
+
+function renderMissionListTips(tips, current) {
+  let combinedTips = [];
+  if (Array.isArray(tips)) {
+    combinedTips = combinedTips.concat(tips);
+  }
+  if (current && current.topic) {
+    combinedTips = combinedTips.concat(getTopicBeginnerTips(current.topic));
+  }
+  combinedTips = uniqueList(combinedTips);
+
+  missionTips.innerHTML = "";
+  for (let i = 0; i < combinedTips.length; i++) {
+    const li = document.createElement("li");
+    li.textContent = combinedTips[i];
+    missionTips.appendChild(li);
+  }
+}
+
+function renderMission() {
+  const current = missions[state.currentMission];
+  const difficulty = getMissionDifficulty(current);
+  missionIndex.textContent = String(state.currentMission + 1);
+  missionTitle.textContent = current.title;
+  missionTopic.textContent = "Temat: " + current.topic;
+  missionDifficulty.textContent = difficulty.label;
+  missionDifficulty.className = "mission-difficulty " + difficulty.key;
+  missionObjective.innerHTML = buildMissionObjectiveHtml(current);
+  renderMissionListTips(current.tips, current);
+  codeInput.value = "";
+  renderBaseScene(sceneRoot);
+  setConsole("", "Czekam na Twoj kod...");
+  applyExamMode();
+  updateProgressUi();
+  saveState();
+}
+
+function runCurrentMission() {
+  const current = missions[state.currentMission];
+  renderBaseScene(sceneRoot);
+
+  const logs = [];
+  const helpers = {
+    log: function(value) {
+      logs.push(typeof value === "string" ? value : JSON.stringify(value, null, 2));
+    }
+  };
+
+  let returned;
+  try {
+    const userFn = new Function(
+      "scene", "helpers",
+      '"use strict";\nvar document = scene.ownerDocument;\nvar window = document.defaultView;\n' + codeInput.value
+    );
+    returned = userFn(sceneRoot, helpers);
+  } catch (error) {
+    setConsole("err", "Blad wykonania: " + error.message);
+    return;
+  }
+
+  let passed = false;
+  try {
+    passed = Boolean(current.validate(sceneRoot, returned));
+  } catch (error) {
+    setConsole("err", "Kod sie uruchomil, ale walidacja misji nie przeszla: " + error.message);
+    return;
+  }
+
+  const logsBlock   = logs.length ? "\nLogi helpers.log:\n- " + logs.join("\n- ") : "";
+  const returnBlock = returned !== undefined ? "\nReturn: " + String(returned) : "";
+
+  if (passed) {
+    if (state.completed.indexOf(current.id) === -1) state.completed.push(current.id);
+    saveState();
+    updateProgressUi();
+    const finishHint = isGameComplete() ? "\nMasz juz 100%. Mozesz kliknac 'Zakoncz gre'." : "";
+    setConsole("ok", "Sukces! Misja " + current.id + " zaliczona." + finishHint + returnBlock + logsBlock);
+  } else {
+    setConsole("err", "Jeszcze nie. Sprawdz warunek misji i sprobuj ponownie." + returnBlock + logsBlock);
+  }
+}
+
+function goToMission(index) {
+  if (index < 0 || index >= missions.length) return;
+  if (!isMissionUnlocked(index)) {
+    setConsole("err", "Ta misja jest jeszcze zablokowana. Najpierw zalicz poprzednie poziomy.");
+    return;
+  }
+  state.currentMission = index;
+  renderMission();
+}
+
+function goToNextMission() {
+  if (state.currentMission < missions.length - 1) {
+    state.currentMission += 1;
+    renderMission();
+  } else {
+    if (isGameComplete()) {
+      setConsole("ok", "To byla ostatnia misja. Masz 100% i mozesz zakonczyc gre.");
+    } else {
+      setConsole("err", "To ostatnia misja na liscie, ale gra konczy sie dopiero po zaliczeniu 100% misji.");
+    }
+  }
+}
+
+function finishGame() {
+  if (!isGameComplete()) {
+    setConsole("err", "Nie mozesz jeszcze zakonczyc gry. Najpierw zalicz wszystkie misje.");
+    return;
+  }
+  setConsole("ok", "Gra zakonczona. Ukonczyles 100% misji DOM Hunters.");
+}
+
+runBtn.addEventListener("click", runCurrentMission);
+nextBtn.addEventListener("click", goToNextMission);
+finishGameBtn.addEventListener("click", finishGame);
+
+missionNavList.addEventListener("click", function(event) {
+  const button = event.target.closest(".mission-chip");
+  if (!button) return;
+  goToMission(Number(button.dataset.index));
+});
+
+missionFilterList.addEventListener("click", function(event) {
+  const button = event.target.closest(".mission-filter");
+  if (!button) return;
+  state.missionFilter = button.dataset.filter;
+  updateProgressUi();
+  saveState();
+});
+
+solutionBtn.addEventListener("click", function() {
+  codeInput.value = missions[state.currentMission].solution;
+  setConsole("", "Wstawilem przykladowe rozwiazanie. Uruchom, aby je sprawdzic.");
+});
+
+examToggleBtn.addEventListener("click", function() {
+  state.examMode = !state.examMode;
+  applyExamMode();
+  saveState();
+});
+
+randomSceneBtn.addEventListener("click", function() {
+  renderRandomScene(sceneRoot);
+  setConsole("", "Losowa scena zaladowana. Uzyj pola kodu aby ja eksplorowac.");
+});
+
+resetBtn.addEventListener("click", function() {
+  state = { currentMission: 0, completed: [], examMode: false, missionFilter: "all" };
+  saveState();
+  renderMission();
+});
+
+attachDomInspector();
+renderMission();

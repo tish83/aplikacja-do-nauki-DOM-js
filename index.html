@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DOM Hunters - trening JS z bohaterami</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Nauka DOM w JS</p>
+        <h1>DOM BOOTCAMP</h1>
+        <p class="subtitle">46 misji od zera: selektory, relacje DOM, formularze, atrybuty i zdarzenia krok po kroku.</p>
+      </div>
+      <div class="progress-panel">
+        <p>Misja <span id="mission-index">1</span>/<span id="mission-total">36</span></p>
+        <p>Ukonczone: <span id="completed-count">0</span></p>
+        <div class="progress-bar" aria-hidden="true">
+          <div id="progress-bar-fill" class="progress-bar-fill"></div>
+        </div>
+        <p class="progress-percent">Postep: <span id="progress-percent">0%</span></p>
+        <p id="finish-status" class="finish-status">Do zakonczenia gry potrzebujesz 100%.</p>
+        <button id="reset-progress" type="button">Resetuj progres</button>
+        <button id="exam-toggle" type="button" data-active="false">Tryb egzaminu</button>
+        <button id="finish-game" type="button" disabled>Zakoncz gre</button>
+      </div>
+    </header>
+
+    <section class="layout">
+      <article class="card stage-card">
+        <div class="card-head">
+          <h2>Scena DOM</h2>
+          <div style="display:flex;gap:8px;align-items:center">
+            <p style="margin:0">Ten obszar modyfikujesz kodem.</p>
+            <button id="random-scene-btn" type="button">Losowa scena</button>
+          </div>
+        </div>
+        <div id="scene-root" class="scene-root" aria-live="polite"></div>
+      </article>
+
+      <article class="card trainer-card">
+        <div class="card-head">
+          <div>
+            <h2 id="mission-title">Misja 1</h2>
+            <p id="mission-topic" class="topic"></p>
+          </div>
+          <span id="mission-difficulty" class="mission-difficulty">Latwe</span>
+        </div>
+
+        <div class="mission-box">
+          <p id="mission-objective"></p>
+          <ul id="mission-tips"></ul>
+        </div>
+
+        <label for="code-input">Twoj kod JS (DOM):</label>
+        <textarea id="code-input" spellcheck="false"></textarea>
+
+        <div class="actions-row">
+          <button id="run-btn" type="button">Uruchom i sprawdz</button>
+          <button id="next-btn" type="button">Nastepna misja</button>
+          <button id="solution-btn" type="button">Pokaz rozwiazanie</button>
+        </div>
+
+        <pre id="console-output" class="console-output">Czekam na Twoj kod...</pre>
+      </article>
+    </section>
+
+    <section class="card mission-nav-card">
+      <div class="card-head mission-nav-head">
+        <h2>Lista misji</h2>
+        <p>Skacz miedzy poziomami i wracaj do niezaliczonych.</p>
+      </div>
+      <div id="mission-filter-list" class="mission-filter-list" aria-label="Filtry misji">
+        <button type="button" class="mission-filter active" data-filter="all">Wszystkie</button>
+        <button type="button" class="mission-filter" data-filter="selectors">Selektory</button>
+        <button type="button" class="mission-filter" data-filter="attributes">Klasy i atrybuty</button>
+        <button type="button" class="mission-filter" data-filter="dom-build">Tworzenie DOM</button>
+        <button type="button" class="mission-filter" data-filter="events">Zdarzenia</button>
+      </div>
+      <div id="mission-nav-list" class="mission-nav-list" aria-label="Lista misji"></div>
+    </section>
+
+    <section class="card cheat-sheet">
+      <h2>Mapa tematyki DOM w projekcie</h2>
+      <div class="sheet-grid">
+        <div>
+          <h3>Selektory i pobieranie</h3>
+          <p>getElementById, getElementsByClassName, querySelector, querySelectorAll</p>
+        </div>
+        <div>
+          <h3>Traversal i zawartosc</h3>
+          <p>closest, parentElement, children, textContent, innerHTML, before, after</p>
+        </div>
+        <div>
+          <h3>Atrybuty i style</h3>
+          <p>setAttribute, getAttribute, dataset, classList, style, disabled, checked, selected</p>
+        </div>
+        <div>
+          <h3>Tworzenie i usuwanie</h3>
+          <p>createElement, append, prepend, insertBefore, before, after, remove, removeChild, DocumentFragment</p>
+        </div>
+        <div>
+          <h3>Zdarzenia</h3>
+          <p>click, input, delegation, stopPropagation, capture, once, removeEventListener, CustomEvent</p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script defer src="./src/app.js"></script>
+</body>
+</html>
