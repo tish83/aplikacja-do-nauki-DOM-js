@@ -1513,6 +1513,7 @@ const sceneRoot        = document.getElementById("scene-root");
 const missionFilterList = document.getElementById("mission-filter-list");
 const missionNavList   = document.getElementById("mission-nav-list");
 const domInspectorTip  = createDomInspectorTip();
+let codeEditor = null;
 
 let state = loadState();
 missionTotal.textContent = String(missions.length);
@@ -1636,11 +1637,6 @@ function renderMissionNavigator() {
     btn.innerHTML = '<span class="mission-chip-number">' + mission.id + '</span><span class="mission-chip-label">' + escapeHtml(mission.topic) + '</span><span class="mission-chip-difficulty ' + difficulty.key + '">' + difficulty.label + '</span>';
     missionNavList.appendChild(btn);
   }
-
-  const activeChip = missionNavList.querySelector(".mission-chip.active");
-  if (activeChip) {
-    activeChip.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
-  }
 }
 
 function updateProgressUi() {
@@ -1678,9 +1674,61 @@ function formatAttributesLine(el) {
   return pairs.join(" ");
 }
 
+function buildChildrenPreview(container, limit) {
+  if (!container) return "";
+  const max = typeof limit === "number" ? limit : 4;
+  const children = Array.from(container.children).slice(0, max);
+  if (!children.length) return "";
+
+  let html = '<div class="insp-children" style="margin-left: 16px; margin-top: 4px; border-left: 1px solid rgba(230, 239, 255, 0.2); padding-left: 8px;">';
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i];
+    const tagName = child.tagName.toLowerCase();
+    const text = child.textContent ? child.textContent.trim().substring(0, 40) : "";
+    const textDisplay = text ? '<span class="insp-text"> ' + escapeHtml(text) + (text.length >= 40 ? '...' : '') + '</span>' : '';
+
+    html += '<div class="insp-tag"><span class="insp-bracket">&lt;</span><span class="insp-name">' + tagName + '</span>';
+    if (child.id) {
+      html += ' <span class="insp-attr">id</span>=<span class="insp-value">"' + escapeHtml(child.id) + '"</span>';
+    }
+    if (child.className) {
+      html += ' <span class="insp-attr">class</span>=<span class="insp-value">"' + escapeHtml(child.className) + '"</span>';
+    }
+    html += '<span class="insp-bracket">&gt;</span>' + textDisplay + '</div>';
+  }
+  html += '</div>';
+
+  return html;
+}
+
 function buildInspectorText(target) {
+  const panel = target.closest(".panel");
   const character = target.closest(".character");
-  if (!character) return "";
+  if (!character && !panel) return "";
+
+  if (!character && panel) {
+    let html = '';
+    html += '<div class="insp-section"><div class="insp-label">AKTYWNY:</div>';
+    html += '<div class="insp-tag"><span class="insp-bracket">&lt;</span><span class="insp-name">' + target.tagName.toLowerCase() + '</span> ';
+    html += formatAttributesLine(target);
+    html += '<span class="insp-bracket">&gt;</span>';
+    if (target.textContent && target.textContent.trim().length < 50) {
+      html += '<span class="insp-text"> ' + escapeHtml(target.textContent.trim()) + '</span>';
+    }
+    html += '</div></div>';
+
+    if (panel !== target) {
+      html += '<div class="insp-section" style="margin-top: 8px;"><div class="insp-label">PANEL:</div>';
+      html += '<div class="insp-tag"><span class="insp-bracket">&lt;</span><span class="insp-name">div</span> ';
+      html += formatAttributesLine(panel);
+      html += '<span class="insp-bracket">&gt;</span></div>';
+      html += buildChildrenPreview(panel, 5);
+      html += '</div>';
+    }
+
+    return html;
+  }
+
   const image = character.querySelector("img");
   let html = '';
   
@@ -1710,21 +1758,7 @@ function buildInspectorText(target) {
     html += '<span class="insp-bracket">&gt;</span></div>';
     
     // Dzieci karty
-    const children = Array.from(character.children).slice(0, 4);
-    if (children.length > 0) {
-      html += '<div class="insp-children" style="margin-left: 16px; margin-top: 4px; border-left: 1px solid rgba(230, 239, 255, 0.2); padding-left: 8px;">';
-      for (let i = 0; i < children.length; i++) {
-        const child = children[i];
-        const tagName = child.tagName.toLowerCase();
-        const classList = child.className ? ' class="' + child.className + '"' : '';
-        const text = child.textContent ? child.textContent.trim().substring(0, 40) : '';
-        const textDisplay = text ? '<span class="insp-text"> ' + escapeHtml(text) + (text.length >= 40 ? '...' : '') + '</span>' : '';
-        html += '<div class="insp-tag"><span class="insp-bracket">&lt;</span><span class="insp-name">' + tagName + '</span>';
-        if (classList) html += '<span class="insp-attr"> class</span>=<span class="insp-value">"' + escapeHtml(child.className) + '"</span>';
-        html += '<span class="insp-bracket">&gt;</span>' + textDisplay + '</div>';
-      }
-      html += '</div>';
-    }
+    html += buildChildrenPreview(character, 4);
     html += '</div>';
   }
   
@@ -1738,7 +1772,7 @@ function moveInspectorTip(event) {
 
 function attachDomInspector() {
   sceneRoot.addEventListener("mousemove", function(event) {
-    const inspectTarget = event.target.closest(".character, .character img");
+    const inspectTarget = event.target.closest(".character, .character img, .panel, .panel *");
     if (!inspectTarget || !sceneRoot.contains(inspectTarget)) {
       domInspectorTip.classList.remove("visible");
       return;
@@ -1779,6 +1813,216 @@ function renderMissionListTips(tips, current) {
   }
 }
 
+function createDomMutationTracker(root) {
+  const changed = new Map();
+
+  function ensureEntry(el) {
+    if (!el || el.nodeType !== 1) return null;
+    if (!changed.has(el)) {
+      changed.set(el, { attrs: new Set(), text: false, children: false });
+    }
+    return changed.get(el);
+  }
+
+  const observer = new MutationObserver(function(mutations) {
+    console.log("🔔 MutationObserver fired with", mutations.length, "mutations");
+    for (let i = 0; i < mutations.length; i++) {
+      const mutation = mutations[i];
+
+      if (mutation.type === "attributes") {
+        const entry = ensureEntry(mutation.target);
+        if (entry && mutation.attributeName) {
+          entry.attrs.add(mutation.attributeName);
+          console.log("  → Attribute mutation:", mutation.target.tagName, mutation.attributeName);
+        }
+      }
+
+      if (mutation.type === "characterData") {
+        const parent = mutation.target.parentElement;
+        const entry = ensureEntry(parent);
+        if (entry) entry.text = true;
+        console.log("  → Text mutation on", parent?.tagName);
+      }
+
+      if (mutation.type === "childList") {
+        const entry = ensureEntry(mutation.target);
+        if (entry) entry.children = true;
+        console.log("  → Child mutation on", mutation.target.tagName);
+      }
+    }
+  });
+
+  observer.observe(root, {
+    attributes: true,
+    childList: true,
+    subtree: true,
+    characterData: true
+  });
+
+  return { observer: observer, changed: changed };
+}
+
+function clearMissionMarker(scene) {
+  if (!scene) return;
+  const marked = scene.querySelectorAll(".mission-target");
+  for (let i = 0; i < marked.length; i++) {
+    marked[i].classList.remove("mission-target");
+  }
+  const arrows = scene.querySelectorAll(".mutation-arrow");
+  for (let i = 0; i < arrows.length; i++) {
+    arrows[i].remove();
+  }
+}
+
+function getMissionTargetId(mission) {
+  const source = [mission.solution, mission.starter, mission.objective].filter(Boolean).join(" ");
+  const bySelector = source.match(/#([a-zA-Z0-9_-]+)/);
+  if (bySelector) return bySelector[1];
+  const byIdApi = source.match(/getElementById\(\s*["']([a-zA-Z0-9_-]+)["']\s*\)/);
+  if (byIdApi) return byIdApi[1];
+  return "";
+}
+
+function getArrowAnchor(el) {
+  if (!el) return null;
+  return el.closest(".character, .panel, li, article") || el;
+}
+
+function showChangeArrow(el) {
+  if (!el || !el.classList) return;
+
+  const oldArrow = el.querySelector(".mutation-arrow");
+  if (oldArrow) oldArrow.remove();
+
+  const arrow = document.createElement("div");
+  arrow.className = "mutation-arrow";
+  arrow.textContent = "↑";
+  arrow.style.color = "#17f1a3";
+
+  if (window.getComputedStyle(el).position === "static") {
+    el.style.position = "relative";
+  }
+
+  el.insertBefore(arrow, el.firstChild);
+  arrow.addEventListener("click", function() {
+    arrow.style.animation = "arrowBounceOut 0.3s ease-in forwards";
+    window.setTimeout(function() {
+      if (arrow.parentNode) arrow.parentNode.removeChild(arrow);
+    }, 300);
+  });
+}
+
+function applyMutationVisualHints(changedMap) {
+  console.log("🔍 applyMutationVisualHints: Found", changedMap.size, "changed elements");
+  
+  if (changedMap.size === 0) {
+    console.warn("⚠️  changedMap is EMPTY - no mutations detected!");
+    return;
+  }
+  
+  changedMap.forEach(function(entry, el) {
+    if (!el || !el.classList) {
+      console.log("  ❌ Invalid element, skipping");
+      return;
+    }
+
+    console.log("  ✅ Processing element:", el.tagName, el.className || "(no class)");
+    const notes = [];
+    if (entry.attrs.size) {
+      const attrs = Array.from(entry.attrs).slice(0, 3).join(", ");
+      notes.push("attr: " + attrs);
+    }
+    if (entry.text) notes.push("tekst");
+    if (entry.children) notes.push("dzieci");
+
+    const noteText = notes.join(" | ");
+    el.classList.add("dom-changed");
+    if (noteText) {
+      el.setAttribute("data-change-note", noteText);
+    }
+
+    // Dodaj wyskakującą strzałkę wskazującą zmianę
+    const arrow = document.createElement("div");
+    arrow.className = "mutation-arrow";
+    arrow.textContent = "↑";
+    arrow.style.color = "#17f1a3";
+    
+    // Upewnij się że parent ma position relative
+    if (window.getComputedStyle(el).position === "static") {
+      el.style.position = "relative";
+    }
+    
+    console.log("  ✓ Arrow created, inserting into element");
+    el.insertBefore(arrow, el.firstChild);
+
+    // Usuń strzałkę po kliknięciu
+    function removeArrow() {
+      arrow.style.animation = "arrowBounceOut 0.3s ease-in forwards";
+      window.setTimeout(function() {
+        if (arrow.parentNode) {
+          arrow.parentNode.removeChild(arrow);
+        }
+      }, 300);
+    }
+    arrow.addEventListener("click", removeArrow);
+
+    // Automatycznie usuń strzałkę i animacje po 4 sekundach
+    window.setTimeout(function() {
+      el.classList.remove("dom-changed");
+      if (el.getAttribute("data-change-note") === noteText) {
+        el.removeAttribute("data-change-note");
+      }
+      if (arrow.parentNode) {
+        const wasVisible = arrow.offsetParent !== null;
+        if (wasVisible) {
+          arrow.style.animation = "arrowBounceOut 0.3s ease-in forwards";
+          window.setTimeout(function() {
+            if (arrow.parentNode) {
+              arrow.parentNode.removeChild(arrow);
+            }
+          }, 300);
+        } else {
+          arrow.parentNode.removeChild(arrow);
+        }
+      }
+    }, 4000);
+  });
+}
+
+function initCodeEditor() {
+  if (!window.CodeMirror || !codeInput) return;
+  codeEditor = window.CodeMirror.fromTextArea(codeInput, {
+    mode: "javascript",
+    theme: "material-darker",
+    lineNumbers: true,
+    lineWrapping: true,
+    indentUnit: 2,
+    tabSize: 2
+  });
+
+  codeEditor.on("keydown", function(cm, event) {
+    if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+      event.preventDefault();
+      runCurrentMission();
+    }
+  });
+}
+
+function getCurrentCode() {
+  if (codeEditor) return codeEditor.getValue();
+  return codeInput.value;
+}
+
+function setCurrentCode(value) {
+  const text = String(value || "");
+  if (codeEditor) {
+    codeEditor.setValue(text);
+    codeEditor.focus();
+    return;
+  }
+  codeInput.value = text;
+}
+
 function renderMission() {
   const current = missions[state.currentMission];
   const difficulty = getMissionDifficulty(current);
@@ -1789,7 +2033,7 @@ function renderMission() {
   missionDifficulty.className = "mission-difficulty " + difficulty.key;
   missionObjective.innerHTML = buildMissionObjectiveHtml(current);
   renderMissionListTips(current.tips, current);
-  codeInput.value = "";
+  setCurrentCode("");
   renderBaseScene(sceneRoot);
   setConsole("", "Czekam na Twoj kod...");
   applyExamMode();
@@ -1799,8 +2043,32 @@ function renderMission() {
 
 function runCurrentMission() {
   const current = missions[state.currentMission];
+  
   renderBaseScene(sceneRoot);
-
+  clearMissionMarker(sceneRoot);
+  
+  // Zapamiętaj stan ZANIM kod się uruchomi
+  const beforeState = new Map();
+  function captureState(root) {
+    const state = new Map();
+    const allElements = root.querySelectorAll("*");
+    for (let i = 0; i < allElements.length; i++) {
+      const el = allElements[i];
+      state.set(el, {
+        className: el.className,
+        attrs: Array.from(el.attributes).map(a => ({ name: a.name, value: a.value })),
+        innerHTML: el.innerHTML,
+        textContent: el.textContent,
+        value: typeof el.value === "string" ? el.value : ""
+      });
+    }
+    return state;
+  }
+  
+  beforeState.clear();
+  const stateSnapshot = captureState(sceneRoot);
+  stateSnapshot.forEach((val, el) => beforeState.set(el, JSON.parse(JSON.stringify(val))));
+  
   const logs = [];
   const helpers = {
     log: function(value) {
@@ -1812,7 +2080,7 @@ function runCurrentMission() {
   try {
     const userFn = new Function(
       "scene", "helpers",
-      '"use strict";\nvar document = scene.ownerDocument;\nvar window = document.defaultView;\n' + codeInput.value
+      '"use strict";\nconst document = scene.ownerDocument;\nconst window = document.defaultView;\n' + getCurrentCode()
     );
     returned = userFn(sceneRoot, helpers);
   } catch (error) {
@@ -1820,6 +2088,76 @@ function runCurrentMission() {
     return;
   }
 
+  // Sprawdź zmiany TERAZ
+  const changedCandidates = [];
+  const allElements = sceneRoot.querySelectorAll("*");
+  
+  for (let i = 0; i < allElements.length; i++) {
+    const el = allElements[i];
+    const before = beforeState.get(el);
+    
+    if (!before) continue;
+    
+    const after = {
+      className: el.className,
+      attrs: Array.from(el.attributes).map(a => ({ name: a.name, value: a.value })),
+      innerHTML: el.innerHTML,
+      textContent: el.textContent,
+      value: el.value || ""
+    };
+    
+    let changed = false;
+    let directChange = false;  // czy zmiana dotyczy samego elementu (nie tylko jego dzieci)
+    
+    // Porównaj klasę - BEZPOŚREDNIA ZMIANA
+    if (before.className !== after.className) {
+      changed = true;
+      directChange = true;
+    }
+    
+    // Porównaj atrybuty - BEZPOŚREDNIA ZMIANA
+    if (JSON.stringify(before.attrs) !== JSON.stringify(after.attrs)) {
+      changed = true;
+      directChange = true;
+    }
+    
+    // Porównaj .value dla inputów - BEZPOŚREDNIA ZMIANA
+    if (before.value !== after.value) {
+      changed = true;
+      directChange = true;
+    }
+    
+    // Porównaj innerHTML - ale to nie jest "bezpośrednia" zmiana (mogą się zmienić dzieci)
+    if (before.innerHTML !== after.innerHTML) {
+      changed = true;
+      // directChange = false // to nie liczy się jako bezpośrednia
+    }
+    
+    // Porównaj textContent - bezpośrednia tylko dla elementów bez dzieci elementowych
+    if (before.textContent !== after.textContent) {
+      changed = true;
+      if (el.children.length === 0) {
+        directChange = true;
+      }
+    }
+    
+    // Zbieraj kandydatów do dalszej filtracji
+    if (changed && directChange) {
+      changedCandidates.push(el);
+    }
+  }
+
+  // Usuń rodziców, jeśli ta sama zmiana jest już wskazana precyzyjniej na potomku.
+  const changedElements = changedCandidates.filter(function(candidate) {
+    for (let i = 0; i < changedCandidates.length; i++) {
+      const other = changedCandidates[i];
+      if (other !== candidate && candidate.contains(other)) {
+        return false;
+      }
+    }
+    return true;
+  });
+  
   let passed = false;
   try {
     passed = Boolean(current.validate(sceneRoot, returned));
@@ -1832,6 +2170,22 @@ function runCurrentMission() {
   const returnBlock = returned !== undefined ? "\nReturn: " + String(returned) : "";
 
   if (passed) {
+    let target = null;
+    const missionTargetId = getMissionTargetId(current);
+    if (missionTargetId) {
+      target = sceneRoot.querySelector("#" + missionTargetId);
+    }
+    if (!target && changedElements.length > 0) {
+      target = changedElements[0];
+    }
+    if (target) {
+      target.classList.add("mission-target");
+      const arrowAnchor = getArrowAnchor(target);
+      if (arrowAnchor) {
+        showChangeArrow(arrowAnchor);
+      }
+    }
+
     if (state.completed.indexOf(current.id) === -1) state.completed.push(current.id);
     saveState();
     updateProgressUi();
@@ -1892,7 +2246,7 @@ missionFilterList.addEventListener("click", function(event) {
 });
 
 solutionBtn.addEventListener("click", function() {
-  codeInput.value = missions[state.currentMission].solution;
+  setCurrentCode(missions[state.currentMission].solution);
   setConsole("", "Wstawilem przykladowe rozwiazanie. Uruchom, aby je sprawdzic.");
 });
 
@@ -1914,4 +2268,5 @@ resetBtn.addEventListener("click", function() {
 });
 
 attachDomInspector();
+initCodeEditor();
 renderMission();

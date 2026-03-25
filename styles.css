@@ -252,9 +252,17 @@ button {
 }
 
 .character.selected,
-.character.tagged {
+.character.tagged,
+.character.targeted,
+.character.targetted {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(255, 77, 45, 0.3);
+  border-width: 3px;
+  box-shadow: 
+    0 0 0 6px rgba(255, 77, 45, 0.35),
+    0 0 28px rgba(255, 77, 45, 0.55),
+    inset 0 0 20px rgba(255, 77, 45, 0.15);
+  animation: selectionGlow 1.8s ease-in-out infinite;
+  transform: scale(1.02);
 }
 
 .tools {
@@ -275,6 +283,160 @@ button {
   border-style: solid;
   border-color: var(--accent-2);
   background: rgba(23, 241, 163, 0.12);
+}
+
+.panel,
+.character,
+#mission-status,
+#squad-list li,
+#archive-list li {
+  position: relative;
+}
+
+.panel[data-open="yes"] {
+  border-style: solid;
+  border-color: #ffd166;
+  background: rgba(255, 209, 102, 0.14);
+}
+
+.panel[data-open="yes"]::after {
+  content: "data-open=yes";
+  position: absolute;
+  top: -9px;
+  right: 8px;
+  font-size: 0.68rem;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #ffd166;
+  color: #1b1b1b;
+  font-weight: 700;
+}
+
+.character[data-seen="1"],
+.character[data-targeted="yes"],
+.character[title="tracked"],
+.character[data-ready="true"],
+.character[data-found="yes"] {
+  box-shadow: 0 0 0 2px rgba(148, 255, 198, 0.45);
+}
+
+#squad-list li.tagged {
+  color: #0f1222;
+  font-weight: 700;
+  background: linear-gradient(120deg, #ffd166, #ff9f43);
+  border-radius: 8px;
+  padding: 3px 8px;
+  box-shadow: 0 0 0 2px rgba(255, 209, 102, 0.35);
+}
+
+#squad-list li.tagged::after {
+  content: " tagged";
+  font-size: 0.72rem;
+  color: rgba(15, 18, 34, 0.78);
+}
+
+#mission-status[data-ready="yes"] {
+  color: #d7ffd8;
+  text-shadow: 0 0 12px rgba(23, 241, 163, 0.4);
+}
+
+[data-change-note]::after {
+  content: attr(data-change-note);
+  position: absolute;
+  top: -10px;
+  right: 8px;
+  max-width: min(70vw, 220px);
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: #0f1222;
+  background: #94ffc6;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dom-changed {
+  animation: domChangePulse 0.75s ease;
+}
+
+.mission-target {
+  outline: 3px solid #17f1a3;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(23, 241, 163, 0.25), 0 0 22px rgba(23, 241, 163, 0.45);
+}
+
+@keyframes domChangePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(148, 255, 198, 0.65);
+  }
+  100% {
+    box-shadow: 0 0 0 10px rgba(148, 255, 198, 0);
+  }
+}
+
+@keyframes selectionGlow {
+  0%, 100% {
+    box-shadow: 
+      0 0 0 6px rgba(255, 77, 45, 0.35),
+      0 0 28px rgba(255, 77, 45, 0.55),
+      inset 0 0 20px rgba(255, 77, 45, 0.15);
+    border-color: var(--accent);
+  }
+  50% {
+    box-shadow: 
+      0 0 0 8px rgba(255, 77, 45, 0.5),
+      0 0 40px rgba(255, 77, 45, 0.75),
+      inset 0 0 25px rgba(255, 77, 45, 0.25);
+    border-color: #ff6b45;
+  }
+}
+
+.mutation-arrow {
+  position: absolute;
+  bottom: -32px;
+  left: 50%;
+  pointer-events: all;
+  cursor: pointer;
+  font-size: 2.8rem;
+  line-height: 1;
+  user-select: none;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 8px currentColor);
+  animation: arrowBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 999;
+}
+
+.mutation-arrow:hover {
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 12px currentColor) brightness(1.2);
+  transform: translateX(-50%) scale(1.15);
+}
+
+@keyframes arrowBounce {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translate(0, 12px) scale(0.5) rotate(-25deg);
+  }
+  60% {
+    opacity: 1;
+    transform: translateX(-50%) translate(0, -8px) scale(1.1) rotate(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translate(0, 0) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes arrowBounceOut {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translate(0, -20px) scale(0.3) rotate(25deg);
+  }
 }
 
 label {
@@ -322,6 +484,19 @@ select,
   padding: 10px;
   resize: vertical;
   font: 500 0.95rem/1.45 "Consolas", "Fira Code", monospace;
+}
+
+.CodeMirror {
+  height: 180px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.36);
+  font: 500 0.95rem/1.45 "Consolas", "Fira Code", monospace;
+}
+
+.CodeMirror-gutters {
+  background: rgba(0, 0, 0, 0.22);
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .mission-box {
