@@ -2510,6 +2510,15 @@ function setCurrentCode(value) {
   codeInput.value = text;
 }
 
+function focusMissionDescriptionStart() {
+  if (!missionTitle) return;
+  if (!missionTitle.hasAttribute("tabindex")) {
+    missionTitle.setAttribute("tabindex", "-1");
+  }
+  missionTitle.scrollIntoView({ behavior: "smooth", block: "start" });
+  missionTitle.focus({ preventScroll: true });
+}
+
 const BLOCKED_CODE_PATTERNS = [
   { regex: /\b(?:window|globalThis|self|top|parent|frames)\b/i, reason: "globalne obiekty przegladarki" },
   { regex: /\b(?:localStorage|sessionStorage|indexedDB|document\.cookie)\b/i, reason: "API magazynu/cookies" },
@@ -2703,6 +2712,7 @@ function renderMission() {
   applyExamMode();
   updateProgressUi();
   saveState();
+  focusMissionDescriptionStart();
 }
 
 function runCurrentMission() {
