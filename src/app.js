@@ -2505,10 +2505,186 @@ function setCurrentCode(value) {
   const text = String(value || "");
   if (codeEditor) {
     codeEditor.setValue(text);
-    codeEditor.focus();
     return;
   }
   codeInput.value = text;
+}
+
+const BLOCKED_CODE_PATTERNS = [
+  { regex: /\b(?:window|globalThis|self|top|parent|frames)\b/i, reason: "globalne obiekty przegladarki" },
+  { regex: /\b(?:localStorage|sessionStorage|indexedDB|document\.cookie)\b/i, reason: "API magazynu/cookies" },
+  { regex: /\b(?:fetch|XMLHttpRequest|WebSocket|EventSource|navigator\.sendBeacon)\b/i, reason: "API sieciowe" },
+  { regex: /\bFunction\s*\(|\beval\s*\(|\bimportScripts\s*\(|\b(?:Worker|SharedWorker|ServiceWorker)\s*\(/, reason: "dynamiczne wykonanie kodu" },
+  { regex: /\b(?:constructor|__proto__|prototype)\b/i, reason: "mechanizmy omijania sandboxa" },
+  { regex: /(?:ownerDocument|defaultView|contentWindow|contentDocument)\b/i, reason: "dostep do glownego dokumentu" }
+];
+
+function findUnsafeCodePattern(source) {
+  const text = String(source || "");
+  for (let i = 0; i < BLOCKED_CODE_PATTERNS.length; i++) {
+    if (BLOCKED_CODE_PATTERNS[i].regex.test(text)) {
+      return BLOCKED_CODE_PATTERNS[i].reason;
+    }
+  }
+  return "";
+}
+
+function escapeCssId(id) {
+  const text = String(id || "");
+  if (typeof CSS !== "undefined" && CSS && typeof CSS.escape === "function") {
+    return CSS.escape(text);
+  }
+  return text.replace(/[^a-zA-Z0-9_-]/g, "\\$&");
+}
+
+function createDomSandbox(sceneRoot) {
+  const targetToProxy = new WeakMap();
+  const proxyToTarget = new WeakMap();
+  const blockedProps = {
+    ownerDocument: true,
+    defaultView: true,
+    window: true,
+    document: true,
+    constructor: true,
+    __proto__: true,
+    prototype: true,
+    contentWindow: true,
+    contentDocument: true
+  };
+
+  function unwrap(value) {
+    if (proxyToTarget.has(value)) return proxyToTarget.get(value);
+    if (Array.isArray(value)) return value.map(unwrap);
+    return value;
+  }
+
+  function wrap(value) {
+    if (value == null) return value;
+    const kind = typeof value;
+    if (kind === "string" || kind === "number" || kind === "boolean" || kind === "bigint") return value;
+    if (kind === "function") return value;
+    if (proxyToTarget.has(value)) return value;
+    if (Array.isArray(value)) return value.map(wrap);
+    if (typeof NodeList !== "undefined" && value instanceof NodeList) return Array.from(value).map(wrap);
+    if (typeof HTMLCollection !== "undefined" && value instanceof HTMLCollection) return Array.from(value).map(wrap);
+    if (typeof Node !== "undefined" && value instanceof Node) return wrapNode(value);
+    return value;
+  }
+
+  function wrapNode(node) {
+    if (targetToProxy.has(node)) return targetToProxy.get(node);
+
+    const proxy = new Proxy(node, {
+      get: function(target, prop) {
+        if (typeof prop === "string" && blockedProps[prop]) return undefined;
+        const raw = Reflect.get(target, prop, target);
+        if (typeof raw === "function") {
+          return function() {
+            const args = Array.from(arguments).map(unwrap);
+            const result = raw.apply(target, args);
+            return wrap(result);
+          };
+        }
+        return wrap(raw);
+      },
+      set: function(target, prop, value) {
+        if (typeof prop === "string" && blockedProps[prop]) return false;
+        return Reflect.set(target, prop, unwrap(value), target);
+      },
+      has: function(target, prop) {
+        if (typeof prop === "string" && blockedProps[prop]) return false;
+        return Reflect.has(target, prop);
+      },
+      getPrototypeOf: function() {
+        return null;
+      }
+    });
+
+    targetToProxy.set(node, proxy);
+    proxyToTarget.set(proxy, node);
+    return proxy;
+  }
+
+  const safeDocument = {
+    getElementById: function(id) {
+      return wrap(sceneRoot.querySelector("#" + escapeCssId(id)));
+    },
+    querySelector: function(selector) {
+      return wrap(sceneRoot.querySelector(String(selector || "")));
+    },
+    querySelectorAll: function(selector) {
+      return wrap(sceneRoot.querySelectorAll(String(selector || "")));
+    },
+    getElementsByClassName: function(className) {
+      return wrap(sceneRoot.getElementsByClassName(String(className || "")));
+    },
+    getElementsByTagName: function(tagName) {
+      return wrap(sceneRoot.getElementsByTagName(String(tagName || "")));
+    },
+    createElement: function(tagName) {
+      return wrap(sceneRoot.ownerDocument.createElement(String(tagName || "div")));
+    },
+    createTextNode: function(value) {
+      return wrap(sceneRoot.ownerDocument.createTextNode(String(value || "")));
+    }
+  };
+
+  return {
+    scene: wrapNode(sceneRoot),
+    document: safeDocument
+  };
+}
+
+function sanitizeSceneDom(sceneRoot) {
+  const blockedSelectors = "script, iframe, object, embed, base, link[rel='import'], meta[http-equiv='refresh']";
+  const blockedNodes = sceneRoot.querySelectorAll(blockedSelectors);
+  for (let i = 0; i < blockedNodes.length; i++) {
+    blockedNodes[i].remove();
+  }
+
+  const all = sceneRoot.querySelectorAll("*");
+  for (let i = 0; i < all.length; i++) {
+    const el = all[i];
+    for (let j = el.attributes.length - 1; j >= 0; j--) {
+      const attr = el.attributes[j];
+      const name = attr.name.toLowerCase();
+      const value = String(attr.value || "");
+      if (name.indexOf("on") === 0) {
+        el.removeAttribute(attr.name);
+        continue;
+      }
+      if ((name === "href" || name === "src" || name === "xlink:href" || name === "action" || name === "formaction") && /^\s*javascript:/i.test(value)) {
+        el.removeAttribute(attr.name);
+        continue;
+      }
+      if (name === "srcdoc") {
+        el.removeAttribute(attr.name);
+      }
+    }
+  }
+}
+
+function executeMissionCodeSafely(sourceCode, sceneRoot, helpers) {
+  const unsafeReason = findUnsafeCodePattern(sourceCode);
+  if (unsafeReason) {
+    throw new Error("Kod zawiera zablokowany wzorzec: " + unsafeReason + ".");
+  }
+
+  const sandbox = createDomSandbox(sceneRoot);
+  const safeHelpers = Object.freeze({
+    log: function(value) {
+      helpers.log(value);
+    }
+  });
+
+  const userFn = new Function(
+    "scene", "document", "helpers",
+    '"use strict";\nconst window = undefined;\nconst globalThis = undefined;\nconst self = undefined;\nconst top = undefined;\nconst parent = undefined;\n' + sourceCode
+  );
+
+  const returned = userFn(sandbox.scene, sandbox.document, safeHelpers);
+  sanitizeSceneDom(sceneRoot);
+  return returned;
 }
 
 function renderMission() {
@@ -2566,11 +2742,7 @@ function runCurrentMission() {
 
   let returned;
   try {
-    const userFn = new Function(
-      "scene", "helpers",
-      '"use strict";\nconst document = scene.ownerDocument;\nconst window = document.defaultView;\n' + getCurrentCode()
-    );
-    returned = userFn(sceneRoot, helpers);
+    returned = executeMissionCodeSafely(getCurrentCode(), sceneRoot, helpers);
   } catch (error) {
     setConsole("err", "Blad wykonania: " + error.message);
     return;
