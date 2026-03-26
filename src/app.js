@@ -94,7 +94,7 @@ const CHARACTER_POOL = [
   { id: "venom",     classes: "character symbiote",         faction: "symbiote",  threat: 8,  name: "Venom",     status: "Mowi: We are Venom." },
   { id: "blade",     classes: "character hunter slayer",    faction: "dhampir",   threat: 8,  name: "Blade",     status: "Nocny lowca wampirow." },
   { id: "ghostface", classes: "character slasher",          faction: "unknown",   threat: 7,  name: "Ghostface", status: "Lubi pytac o ulubiony film." },
-  { id: "jason",     classes: "character slasher undead",   faction: "camp",      threat: 9,  name: "Jason",     status: "Pojawia sie przy jeziorze." },
+  { id: "jason",     classes: "character slasher undead",   faction: "camp",      threat: 9,  name: "Jason",     status: "Pojawia się przy jeziorze." },
   { id: "krueger",   classes: "character dreamer slasher",  faction: "dreams",    threat: 9,  name: "Freddy",    status: "Atakuje we snie." },
   { id: "thanos",    classes: "character cosmic titan",     faction: "infinity",  threat: 10, name: "Thanos",    status: "Zna wage rownowagi." },
 ];
@@ -384,7 +384,7 @@ const missions = [
     topic: "querySelector",
     title: "Misja 6: Komunikat Venoma",
     objective: "Krok 1: w karcie #venom znajdź paragraf z klasą '.status' (selektor: '#venom .status'). Krok 2: ustaw jego textContent na 'Gotowy do ataku.'.",
-    tips: ["W scenie DOM #venom zawiera <p class='status'>..., dlatego selektor '#venom .status' jest poprawny.", "Spacja w selektorze '#venom .status' oznacza: element '.status' znajdujacy sie wewnątrz '#venom'.", "querySelector zwroci tylko pierwszy pasujacy element - tutaj jest to status Venoma."],
+    tips: ["W scenie DOM #venom zawiera <p class='status'>..., dlatego selektor '#venom .status' jest poprawny.", "Spacja w selektorze '#venom .status' oznacza: element '.status' znajdujacy się wewnątrz '#venom'.", "querySelector zwroci tylko pierwszy pasujacy element - tutaj jest to status Venoma."],
     starter: 'const status = document.querySelector("#venom .status");',
     solution: 'const status = document.querySelector("#venom .status");\nstatus.textContent = "Gotowy do ataku.";',
     validate: function(scene) {
@@ -410,7 +410,7 @@ const missions = [
     topic: "querySelector",
     title: "Misja 8: Oznacz pierwszy cel",
     objective: "Uzyj querySelector('#squad-list li'), pobierz pierwszy element li z listy #squad-list i dodaj mu klasę 'tagged'.",
-    tips: ["Selektor '#squad-list li' oznacza: pierwszy <li> znajdujacy sie wewnątrz elementu o id='squad-list'.", "querySelector zwraca tylko pierwszy pasujacy <li>.", "Klasę dodasz przez classList.add('tagged')."],
+    tips: ["Selektor '#squad-list li' oznacza: pierwszy <li> znajdujacy się wewnątrz elementu o id='squad-list'.", "querySelector zwraca tylko pierwszy pasujacy <li>.", "Klasę dodasz przez classList.add('tagged')."],
     starter: 'const firstTarget = document.querySelector("#squad-list li");',
     solution: 'const firstTarget = document.querySelector("#squad-list li");\nfirstTarget.classList.add("tagged");',
     validate: function(scene) {
@@ -448,7 +448,7 @@ const missions = [
     id: 11,
     topic: "querySelectorAll",
     title: "Misja 11: Nazwy wielkimi literami",
-    objective: "Krok 1: pobierz wszystkie nagłówki h3 z kart postaci .character wewnątrz #arena. Krok 2: zamien tekst kazdego naglowka na DUZE litery.",
+    objective: "Krok 1: pobierz wszystkie nagłówki h3 z kart postaci .character wewnątrz #arena. Krok 2: zamień tekst kazdego naglowka na DUŻE litery.",
     tips: ["Selektor '#arena .character h3' oznacza nagłówki h3 wewnątrz kart postaci.", "Dla kazdego elementu uzyj textContent = textContent.toUpperCase()."],
     starter: 'const names = document.querySelectorAll("#arena .character h3");',
     solution: 'const names = document.querySelectorAll("#arena .character h3");\nnames.forEach((el) => {\n  el.textContent = el.textContent.toUpperCase();\n});',
@@ -528,7 +528,7 @@ const missions = [
     topic: "classList.add",
     title: "Misja 17: Alarm online",
     objective: "Pobierz #alert-panel i dodaj mu klasę 'active'.",
-    tips: ["Nie zmieniasz tekstu panelu - tylko dopisujesz nowa klasę CSS.", "Uzyj panel.classList.add('active')."],
+    tips: ["Nie zmieniasz tekstu panelu - tylko dopisujesz nową klasę CSS.", "Uzyj panel.classList.add('active')."],
     starter: 'const panel = document.getElementById("alert-panel");',
     solution: 'const panel = document.getElementById("alert-panel");\npanel.classList.add("active");',
     validate: function(scene) {
@@ -554,7 +554,7 @@ const missions = [
     topic: "classList.toggle",
     title: "Misja 19: Oznacz drugi cel",
     objective: "Krok 1: pobierz drugi element li z listy #squad-list. Krok 2: przełącz na nim klasę 'tagged' przez classList.toggle().",
-    tips: ["Drugi element listy pobierzesz np. selektorem '#squad-list li:nth-child(2)'.", "toggle doda klasę, jesli jej nie ma, albo usunie, jesli już istnieje."],
+    tips: ["Drugi element listy pobierzesz np. selektorem '#squad-list li:nth-child(2)'.", "toggle doda klasę, jeśli jej nie ma, albo usunie, jeśli już istnieje."],
     starter: 'const second = document.querySelector("#squad-list li:nth-child(2)");',
     solution: 'const second = document.querySelector("#squad-list li:nth-child(2)");\nsecond.classList.toggle("tagged");',
     validate: function(scene) {
@@ -643,9 +643,9 @@ const missions = [
   {
     id: 26,
     topic: "createElement + append",
-    title: "Misja 26: Dodaj nowa karte",
-    objective: "Krok 1: utwórz element article i ustaw mu id 'blade' oraz klasę 'character'. Krok 2: utwórz w nim naglowek h3 z tekstem 'Blade'. Krok 3: dolacz cala karte do #arena.",
-    tips: ["article i h3 tworzysz osobno przez createElement().", "Najpierw wloz h3 do article, a dopiero potem article do #arena."],
+    title: "Misja 26: Dodaj nową kartę",
+    objective: "Krok 1: utwórz element article i ustaw mu id 'blade' oraz klasę 'character'. Krok 2: utwórz w nim nagłówek h3 z tekstem 'Blade'. Krok 3: dołącz całą kartę do #arena.",
+    tips: ["article i h3 tworzysz osobno przez createElement().", "Najpierw włóż h3 do article, a dopiero potem article do #arena."],
     starter: 'const arena = document.getElementById("arena");',
     solution: 'const arena = document.getElementById("arena");\nconst blade = document.createElement("article");\nblade.id = "blade";\nblade.className = "character";\nconst h3 = document.createElement("h3");\nh3.textContent = "Blade";\nblade.append(h3);\narena.append(blade);',
     validate: function(scene) {
@@ -658,7 +658,7 @@ const missions = [
     topic: "insertBefore",
     title: "Misja 27: Notatka przed arena",
     objective: "Krok 1: utwórz paragraf p o id 'warning-note' i tekscie 'UWAGA: Strefa zagrożenia'. Krok 2: wstaw go przed #arena przy pomocy insertBefore().",
-    tips: ["insertBefore wywolujesz na rodzicu, czyli tutaj na #scene-root.", "Kolejnosc jest taka: root.insertBefore(nowyElement, arena)."],
+    tips: ["insertBefore wywołujesz na rodzicu, czyli tutaj na #scene-root.", "Kolejność jest taka: root.insertBefore(nowyElement, arena)."],
     starter: 'const root = document.getElementById("scene-root");\nconst arena = document.getElementById("arena");',
     solution: 'const root = document.getElementById("scene-root");\nconst arena = document.getElementById("arena");\nconst note = document.createElement("p");\nnote.id = "warning-note";\nnote.textContent = "UWAGA: Strefa zagrożenia";\nroot.insertBefore(note, arena);',
     validate: function(scene) {
@@ -671,7 +671,7 @@ const missions = [
     id: 28,
     topic: "remove",
     title: "Misja 28: Usuń Predatora",
-    objective: "Krok 1: pobierz karte #predator. Krok 2: usuń ten element z drzewa DOM.",
+    objective: "Krok 1: pobierz kartę #predator. Krok 2: usuń ten element z drzewa DOM.",
     tips: ["Po usunięciu element nie powinien już istnieć w scenie.", "Najprostsze rozwiązanie to predator.remove()."],
     starter: 'const predator = document.getElementById("predator");',
     solution: 'const predator = document.getElementById("predator");\npredator.remove();',
@@ -682,9 +682,9 @@ const missions = [
   {
     id: 29,
     topic: "addEventListener click",
-    title: "Misja 29: Licznik klikniec",
-    objective: "Krok 1: podepnij addEventListener('click', ...) do przycisku #panic-button. Krok 2: po kazdym kliknieciu zwieksz tekst w #panic-count o 1.",
-    tips: ["Listener to funkcja, ktora uruchomi sie po kliknieciu przycisku.", "Zawartość #panic-count jest tekstem, więc najpierw zamien ja na liczbę."],
+    title: "Misja 29: Licznik kliknięć",
+    objective: "Krok 1: podepnij addEventListener('click', ...) do przycisku #panic-button. Krok 2: po kazdym kliknięciu zwieksz tekst w #panic-count o 1.",
+    tips: ["Listener to funkcja, która uruchomi się po kliknięciu przycisku.", "Zawartość #panic-count jest tekstem, więc najpierw zamień ja na liczbę."],
     starter: 'const panicBtn = document.getElementById("panic-button");\nconst panicCount = document.getElementById("panic-count");',
     solution: 'const panicBtn = document.getElementById("panic-button");\nconst panicCount = document.getElementById("panic-count");\npanicBtn.addEventListener("click", () => {\n  panicCount.textContent = String(Number(panicCount.textContent) + 1);\n});',
     validate: function(scene) {
@@ -700,9 +700,9 @@ const missions = [
   {
     id: 30,
     topic: "addEventListener input",
-    title: "Misja 30: Zywy podglad",
-    objective: "Krok 1: podepnij zdarzenie input do pola #codeword. Krok 2: przy wpisywaniu pokazuj w #codeword-preview ten sam tekst, ale zamieniony na DUZE litery.",
-    tips: ["W zdarzeniu input aktualna wartość pola znajdziesz w event.target.value.", "Do zamiany na duze litery uzyj toUpperCase()."],
+    title: "Misja 30: Żywy podgląd",
+    objective: "Krok 1: podepnij zdarzenie input do pola #codeword. Krok 2: przy wpisywaniu pokazuj w #codeword-preview ten sam tekst, ale zamieniony na DUŻE litery.",
+    tips: ["W zdarzeniu input aktualną wartość pola znajdziesz w event.target.value.", "Do zamiany na duże litery uzyj toUpperCase()."],
     starter: 'const codeword = document.getElementById("codeword");\nconst preview = document.getElementById("codeword-preview");',
     solution: 'const codeword = document.getElementById("codeword");\nconst preview = document.getElementById("codeword-preview");\ncodeword.addEventListener("input", (event) => {\n  preview.textContent = event.target.value.toUpperCase();\n});',
     validate: function(scene) {
@@ -717,9 +717,9 @@ const missions = [
   {
     id: 31,
     topic: "event delegation",
-    title: "Misja 31: Delegacja na liscie",
-    objective: "Nie dodawaj listenera do kazdego <li> osobno. Zamiast tego ustaw jeden listener na #squad-list i spraw, aby klikniety element <li> przełączal klasę 'tagged'.",
-    tips: ["To jest delegacja zdarzen: listener jest na rodzicu, ale reaguje na klikniete dziecko.", "Sprawdź, czy event.target jest elementem li, np. przez matches('li')."],
+    title: "Misja 31: Delegacja na liście",
+    objective: "Nie dodawaj listenera do kazdego <li> osobno. Zamiast tego ustaw jeden listener na #squad-list i spraw, aby kliknięty element <li> przełączał klasę 'tagged'.",
+    tips: ["To jest delegacja zdarzeń: listener jest na rodzicu, ale reaguje na kliknięte dziecko.", "Sprawdź, czy event.target jest elementem li, np. przez matches('li')."],
     starter: 'const squadList = document.getElementById("squad-list");',
     solution: 'const squadList = document.getElementById("squad-list");\nsquadList.addEventListener("click", (event) => {\n  if (event.target.matches("li")) {\n    event.target.classList.toggle("tagged");\n  }\n});',
     validate: function(scene) {
@@ -733,8 +733,8 @@ const missions = [
     id: 32,
     topic: "addEventListener once",
     title: "Misja 32: Jednorazowy listener",
-    objective: "Dodaj do #panic-button listener click z opcja { once: true }. Po kliknieciu ma zwiekszyc #panic-count, ale tylko przy pierwszym kliknieciu.",
-    tips: ["Opcja { once: true } sama odczepi listener po pierwszym wywolaniu.", "Jesli klikniesz kilka razy, licznik ma wzrosnac tylko do 1."],
+    objective: "Dodaj do #panic-button listener click z opcją { once: true }. Po kliknięciu ma zwiększyć #panic-count, ale tylko przy pierwszym kliknięciu.",
+    tips: ["Opcja { once: true } sama odczepi listener po pierwszym wywołaniu.", "Jeśli klikniesz kilka razy, licznik ma wzrosnac tylko do 1."],
     starter: 'const panicBtn = document.getElementById("panic-button");\nconst panicCount = document.getElementById("panic-count");',
     solution: 'const panicBtn = document.getElementById("panic-button");\nconst panicCount = document.getElementById("panic-count");\npanicBtn.addEventListener("click", () => {\n  panicCount.textContent = String(Number(panicCount.textContent) + 1);\n}, { once: true });',
     validate: function(scene) {
@@ -750,9 +750,9 @@ const missions = [
   {
     id: 33,
     topic: "removeEventListener",
-    title: "Misja 33: Odlacz handler",
-    objective: "Krok 1: utwórz nazwana funkcje panicHandler. Krok 2: dodaj ja jako listener click do #panic-button. Krok 3: od razu usuń ten sam listener przez removeEventListener().",
-    tips: ["removeEventListener zadziala tylko wtedy, gdy przekazesz te sama funkcje co przy addEventListener.", "Dlatego tutaj potrzebna jest funkcja nazwana, a nie anonimowa."],
+    title: "Misja 33: Odłącz handler",
+    objective: "Krok 1: utwórz funkcję panicHandler. Krok 2: dodaj ją jako listener click do #panic-button. Krok 3: od razu usuń ten sam listener przez removeEventListener().",
+    tips: ["removeEventListener zadziała tylko wtedy, gdy przekażesz tą samą funkcję co przy addEventListener.", "Dlatego tutaj potrzebna jest funkcja nazwana, a nie anonimowa."],
     starter: 'const panicBtn = document.getElementById("panic-button");\nconst panicCount = document.getElementById("panic-count");\n\nfunction panicHandler() {\n  panicCount.textContent = String(Number(panicCount.textContent) + 1);\n}',
     solution: 'const panicBtn = document.getElementById("panic-button");\nconst panicCount = document.getElementById("panic-count");\n\nfunction panicHandler() {\n  panicCount.textContent = String(Number(panicCount.textContent) + 1);\n}\n\npanicBtn.addEventListener("click", panicHandler);\npanicBtn.removeEventListener("click", panicHandler);',
     validate: function(scene) {
@@ -768,8 +768,8 @@ const missions = [
     id: 34,
     topic: "stopPropagation",
     title: "Misja 34: Zatrzymaj bubbling",
-    objective: "Dodaj listener click do #deadpool i wewnątrz funkcji wywolaj event.stopPropagation(), aby klikniecie nie dotarlo wyzej do #arena.",
-    tips: ["Bez stopPropagation zdarzenie przechodzi z dziecka do rodzica.", "Tutaj chodzi o zablokowanie tej drogi po kliknieciu karty Deadpoola."],
+    objective: "Dodaj listener click do #deadpool i wewnątrz funkcji wywołaj event.stopPropagation(), aby kliknięcie nie dotarło wyżej do #arena.",
+    tips: ["Bez stopPropagation zdarzenie przechodzi z dziecka do rodzica.", "Tutaj chodzi o zablokowanie tej drogi po kliknięciu karty Deadpoola."],
     starter: 'const deadpool = document.getElementById("deadpool");',
     solution: 'const deadpool = document.getElementById("deadpool");\ndeadpool.addEventListener("click", (event) => {\n  event.stopPropagation();\n});',
     validate: function(scene) {
@@ -786,8 +786,8 @@ const missions = [
     id: 35,
     topic: "capture phase",
     title: "Misja 35: Faza przechwytywania",
-    objective: "Ustaw listener click na #arena z opcja { capture: true }. Gdy klikniecie ruszy przez DOM, listener ma zapisac arena.dataset.phase = 'capture-hit'.",
-    tips: ["Listener w capture odpala sie zanim zdarzenie dojdzie do kliknietego elementu.", "To pokazuje roznice miedzy capture i bubbling."],
+    objective: "Ustaw listener click na #arena z opcją { capture: true }. Gdy kliknięcie ruszy przez DOM, listener ma zapisać arena.dataset.phase = 'capture-hit'.",
+    tips: ["Listener w capture odpala się zanim zdarzenie dojdzie do klikniętego elementu.", "To pokazuje roóżznice między capture i bubbling."],
     starter: 'const arena = document.getElementById("arena");',
     solution: 'const arena = document.getElementById("arena");\narena.addEventListener("click", () => {\n  arena.dataset.phase = "capture-hit";\n}, { capture: true });',
     validate: function(scene) {
@@ -802,23 +802,23 @@ const missions = [
   {
     id: 36,
     topic: "CustomEvent",
-    title: "Misja 36: Finalny sygnal",
-    objective: "Nasluchuj na #scene-root wlasnego zdarzenia 'hunt:complete'. Gdy to zdarzenie sie pojawi, ustaw tekst elementu #mission-status na 'Status: MISJA UKONCZONA'.",
-    tips: ["'hunt:complete' to nazwa wlasnego zdarzenia aplikacji, a nie wbudowanego click czy input.", "Obsluzysz je tak samo jak inne zdarzenia: przez addEventListener()."],
+    title: "Misja 36: Finalny sygnał",
+    objective: "Nasłuchuj na #scene-root własnego zdarzenia 'hunt:complete'. Gdy to zdarzenie się pojawi, ustaw tekst elementu #mission-status na 'Status: MISJA UKOŃCZONA'.",
+    tips: ["'hunt:complete' to nazwa własnego zdarzenia aplikacji, a nie wbudowanego click czy input.", "Obsłużysz je tak samo jak inne zdarzenia: przez addEventListener()."],
     starter: 'const root = document.getElementById("scene-root");\nconst status = document.getElementById("mission-status");',
-    solution: 'const root = document.getElementById("scene-root");\nconst status = document.getElementById("mission-status");\nroot.addEventListener("hunt:complete", () => {\n  status.textContent = "Status: MISJA UKONCZONA";\n});',
+    solution: 'const root = document.getElementById("scene-root");\nconst status = document.getElementById("mission-status");\nroot.addEventListener("hunt:complete", () => {\n  status.textContent = "Status: MISJA UKOŃCZONA";\n});',
     validate: function(scene) {
       const status = scene.querySelector("#mission-status");
       scene.dispatchEvent(new CustomEvent("hunt:complete", { bubbles: true }));
-      return status && status.textContent.trim() === "Status: MISJA UKONCZONA";
+      return status && status.textContent.trim() === "Status: MISJA UKOŃCZONA";
     }
   },
   {
     id: 37,
     topic: "closest",
-    title: "Misja 37: Znajdź karte po naglowku",
-    objective: "Krok 1: pobierz naglowek #venom h3. Krok 2: przez closest('.character') znajdź karte Venoma. Krok 3: ustaw na tej karcie atrybut data-found='yes'.",
-    tips: ["closest() idzie od elementu w gore po drzewie DOM i szuka najblizszego pasujacego przodka.", "Tutaj startujesz z h3, a chcesz dojsc do calej karty article.character."],
+    title: "Misja 37: Znajdź kartę po nagłówku",
+    objective: "Krok 1: pobierz nagłówek #venom h3. Krok 2: przez closest('.character') znajdź kartę Venoma. Krok 3: ustaw na tej karcie atrybut data-found='yes'.",
+    tips: ["closest() idzie od elementu w górę po drzewie DOM i szuka najbliższego pasującego przodka.", "Tutaj startujesz z h3, a chcesz dojść do całej karty article.character."],
     starter: 'const venomHeading = document.querySelector("#venom h3");',
     solution: 'const venomHeading = document.querySelector("#venom h3");\nconst venomCard = venomHeading.closest(".character");\nvenomCard.setAttribute("data-found", "yes");',
     validate: function(scene) {
@@ -829,9 +829,9 @@ const missions = [
   {
     id: 38,
     topic: "parentElement",
-    title: "Misja 38: Wroc do rodzica",
-    objective: "Krok 1: pobierz paragraf #alien .status. Krok 2: przejdz do jego parentElement. Krok 3: dodaj temu rodzicowi klasę 'inspected'.",
-    tips: ["parentElement zwraca bezposredniego rodzica elementu.", "Rodzicem paragrafu .status jest karta postaci Alien."],
+    title: "Misja 38: Wróć do rodzica",
+    objective: "Krok 1: pobierz paragraf #alien .status. Krok 2: przejdź do jego parentElement. Krok 3: dodaj temu rodzicowi klasę 'inspected'.",
+    tips: ["parentElement zwraca bezpośredniego rodzica elementu.", "Rodzicem paragrafu .status jest karta postaci Alien."],
     starter: 'const alienStatus = document.querySelector("#alien .status");',
     solution: 'const alienStatus = document.querySelector("#alien .status");\nconst alienCard = alienStatus.parentElement;\nalienCard.classList.add("inspected");',
     validate: function(scene) {
@@ -856,7 +856,7 @@ const missions = [
     id: 40,
     topic: "disabled",
     title: "Misja 40: Odblokuj przycisk",
-    objective: "Krok 1: pobierz przycisk #deploy-button. Krok 2: ustaw jego właściwość disabled na false, aby przycisk przestal być zablokowany.",
+    objective: "Krok 1: pobierz przycisk #deploy-button. Krok 2: ustaw jego właściwość disabled na false, aby przycisk przestał być zablokowany.",
     tips: ["disabled to właściwość logiczna elementu formularza.", "Nie ustawiasz tekstu - zmieniasz stan przycisku."],
     starter: 'const deployButton = document.getElementById("deploy-button");',
     solution: 'const deployButton = document.getElementById("deploy-button");\ndeployButton.disabled = false;',
@@ -868,7 +868,7 @@ const missions = [
   {
     id: 41,
     topic: "checked",
-    title: "Misja 41: Wlacz tryb stealth",
+    title: "Misja 41: Włącz tryb stealth",
     objective: "Krok 1: pobierz checkbox #stealth-mode. Krok 2: zaznacz go, ustawiajac checked = true.",
     tips: ["checked to właściwość typu true/false dla checkboxa.", "Po zadaniu checkbox ma być zaznaczony."],
     starter: 'const stealthMode = document.getElementById("stealth-mode");',
@@ -881,9 +881,9 @@ const missions = [
   {
     id: 42,
     topic: "selected",
-    title: "Misja 42: Zmien priorytet celu",
-    objective: "Krok 1: pobierz select #target-priority. Krok 2: ustaw w nim wybrana opcje 'high'.",
-    tips: ["Najprosciej ustawic select.value = 'high'.", "Po zmianie zaznaczona ma być opcja 'Wysoki'."],
+    title: "Misja 42: Zmień priorytet celu",
+    objective: "Krok 1: pobierz select #target-priority. Krok 2: ustaw w nim wybraną opcję 'high'.",
+    tips: ["Najprosciej ustawić select.value = 'high'.", "Po zmianie zaznaczona ma być opcja 'Wysoki'."],
     starter: 'const priority = document.getElementById("target-priority");',
     solution: 'const priority = document.getElementById("target-priority");\npriority.value = "high";',
     validate: function(scene) {
@@ -894,9 +894,9 @@ const missions = [
   {
     id: 43,
     topic: "prepend",
-    title: "Misja 43: Dodaj lidera na poczatek",
-    objective: "Krok 1: utwórz nowy element li z tekstem 'Blade' i atrybutem data-name='blade'. Krok 2: dodaj go na poczatek listy #squad-list przy pomocy prepend().",
-    tips: ["prepend() dodaje element na poczatku, a nie na koncu.", "Po wykonaniu zadania Blade ma być pierwszym elementem listy."],
+    title: "Misja 43: Dodaj lidera na początek",
+    objective: "Krok 1: utwórz nowy element li z tekstem 'Blade' i atrybutem data-name='blade'. Krok 2: dodaj go na początek listy #squad-list przy pomocy prepend().",
+    tips: ["prepend() dodaje element na początku, a nie na końcu.", "Po wykonaniu zadania Blade ma być pierwszym elementem listy."],
     starter: 'const squadList = document.getElementById("squad-list");',
     solution: 'const squadList = document.getElementById("squad-list");\nconst li = document.createElement("li");\nli.textContent = "Blade";\nli.setAttribute("data-name", "blade");\nsquadList.prepend(li);',
     validate: function(scene) {
@@ -908,8 +908,8 @@ const missions = [
     id: 44,
     topic: "before",
     title: "Misja 44: Briefing przed arena",
-    objective: "Krok 1: utwórz paragraf o id 'briefing-note' z tekstem 'Briefing przed arena'. Krok 2: wstaw go bezposrednio przed #arena przy pomocy metody before().",
-    tips: ["Metode before() wywolujesz na elemencie, przed ktorym chcesz cos wstawic.", "Tutaj arena.before(nowyParagraf)."],
+    objective: "Krok 1: utwórz paragraf o id 'briefing-note' z tekstem 'Briefing przed arena'. Krok 2: wstaw go bezpośrednio przed #arena przy pomocy metody before().",
+    tips: ["Metodę before() wywołujesz na elemencie, przed ktorym chcesz cos wstawic.", "Tutaj arena.before(nowyParagraf)."],
     starter: 'const arena = document.getElementById("arena");',
     solution: 'const arena = document.getElementById("arena");\nconst note = document.createElement("p");\nnote.id = "briefing-note";\nnote.textContent = "Briefing przed arena";\narena.before(note);',
     validate: function(scene) {
@@ -922,8 +922,8 @@ const missions = [
     id: 45,
     topic: "after",
     title: "Misja 45: Raport po walce",
-    objective: "Krok 1: utwórz paragraf o id 'after-action'. Krok 2: ustaw jego tekst na 'Raport po walce'. Krok 3: wstaw go bezposrednio za #arena przy pomocy after().",
-    tips: ["after() wstawia element zaraz po wskazanym elemencie.", "Tutaj nowy paragraf ma być tuz za arena, a przed sekcja paneli."],
+    objective: "Krok 1: utwórz paragraf o id 'after-action'. Krok 2: ustaw jego tekst na 'Raport po walce'. Krok 3: wstaw go bezpośrednio za #arena przy pomocy after().",
+    tips: ["after() wstawia element zaraz po wskazanym elemencie.", "Tutaj nowy paragraf ma być tuż za areną, a przed sekcją paneli."],
     starter: 'const arena = document.getElementById("arena");',
     solution: 'const arena = document.getElementById("arena");\nconst note = document.createElement("p");\nnote.id = "after-action";\nnote.textContent = "Raport po walce";\narena.after(note);',
     validate: function(scene) {
@@ -934,9 +934,9 @@ const missions = [
   {
     id: 46,
     topic: "removeChild",
-    title: "Misja 46: Usun pierwszy raport",
-    objective: "Krok 1: pobierz liste #archive-list. Krok 2: przez removeChild() usuń z niej pierwszy element li.",
-    tips: ["removeChild() wywolujesz na rodzicu i przekazujesz dziecko do usuniecia.", "Najpierw pobierz archiveList.firstElementChild, a potem usuń go z listy."],
+    title: "Misja 46: Usuń pierwszy raport",
+    objective: "Krok 1: pobierz listę #archive-list. Krok 2: przez removeChild() usuń z niej pierwszy element li.",
+    tips: ["removeChild() wywołujesz na rodzicu i przekazujesz dziecko do usunięcia.", "Najpierw pobierz archiveList.firstElementChild, a potem usuń go z listy."],
     starter: 'const archiveList = document.getElementById("archive-list");',
     solution: 'const archiveList = document.getElementById("archive-list");\narchiveList.removeChild(archiveList.firstElementChild);',
     validate: function(scene) {
@@ -944,16 +944,327 @@ const missions = [
       if (!archiveList) return false;
       return archiveList.children.length === 2 && archiveList.children[0].textContent.trim() === "raport-beta";
     }
+  },
+  {
+    id: 47,
+    topic: "getElementsByTagName",
+    title: "Misja 47: Ostatni raport",
+    objective: "Krok 1: pobierz wszystkie elementy li z #archive-list przez getElementsByTagName(). Krok 2: dodaj klasę 'tagged' ostatniemu raportowi.",
+    tips: ["getElementsByTagName() zwraca kolekcję wielu elementów, więc ostatni element pobierzesz przez reports[reports.length - 1].", "Metodę możesz wywołać na konkretnym elemencie, np. na liście #archive-list."],
+    starter: 'const reports = document.getElementById("archive-list").getElementsByTagName("li");',
+    solution: 'const reports = document.getElementById("archive-list").getElementsByTagName("li");\nreports[reports.length - 1].classList.add("tagged");',
+    validate: function(scene) {
+      const lastReport = scene.querySelector("#archive-list li:last-child");
+      return lastReport && lastReport.classList.contains("tagged");
+    }
+  },
+  {
+    id: 48,
+    topic: "getElementsByTagName",
+    title: "Misja 48: Zmień drugi wpis",
+    objective: "Krok 1: pobierz wszystkie elementy li z #squad-list przez getElementsByTagName(). Krok 2: ustaw textContent drugiego elementu na 'Predator Elite'.",
+    tips: ["Po pobraniu kolekcji drugi element ma indeks 1.", "textContent podmienia cały tekst wewnątrz wskazanego elementu."],
+    starter: 'const squadItems = document.getElementById("squad-list").getElementsByTagName("li");',
+    solution: 'const squadItems = document.getElementById("squad-list").getElementsByTagName("li");\nsquadItems[1].textContent = "Predator Elite";',
+    validate: function(scene) {
+      const second = scene.querySelector("#squad-list li:nth-child(2)");
+      return second && second.textContent.trim() === "Predator Elite";
+    }
+  },
+  {
+    id: 49,
+    topic: "style",
+    title: "Misja 49: Podświetl alert",
+    objective: "Pobierz #alert-panel i ustaw mu style.backgroundColor na 'rgb(132, 255, 181)' oraz style.color na 'rgb(19, 32, 24)'.",
+    tips: ["W JavaScript właściwości stylu zapisujesz camelCase, np. backgroundColor.", "Obie wartości ustawiasz bezpośrednio przez panel.style.nazwaWłaściwości."],
+    starter: 'const panel = document.getElementById("alert-panel");',
+    solution: 'const panel = document.getElementById("alert-panel");\npanel.style.backgroundColor = "rgb(132, 255, 181)";\npanel.style.color = "rgb(19, 32, 24)";',
+    validate: function(scene) {
+      const panel = scene.querySelector("#alert-panel");
+      return panel && panel.style.backgroundColor === "rgb(132, 255, 181)" && panel.style.color === "rgb(19, 32, 24)";
+    }
+  },
+  {
+    id: 50,
+    topic: "textContent",
+    title: "Misja 50: Status gotowości",
+    objective: "Pobierz #mission-status i ustaw jego textContent na 'Status: GOTOWE'.",
+    tips: ["textContent podmienia cały tekst elementu.", "Najpierw pobierz element, potem ustaw nową wartość przez znak =."],
+    starter: 'const status = document.getElementById("mission-status");',
+    solution: 'const status = document.getElementById("mission-status");\nstatus.textContent = "Status: GOTOWE";',
+    validate: function(scene) {
+      const status = scene.querySelector("#mission-status");
+      return status && status.textContent.trim() === "Status: GOTOWE";
+    }
+  },
+  {
+    id: 51,
+    topic: "innerHTML",
+    title: "Misja 51: Wstaw szybki briefing",
+    objective: "Pobierz #intel-feed i ustaw jego innerHTML na '<li>sygnal-1</li><li>sygnal-2</li>'.",
+    tips: ["innerHTML pozwala wstawić gotowy HTML jako tekst.", "Po ustawieniu innerHTML stare dzieci elementu zostaną zastąpione nową zawartością."],
+    starter: 'const feed = document.getElementById("intel-feed");',
+    solution: 'const feed = document.getElementById("intel-feed");\nfeed.innerHTML = "<li>sygnal-1</li><li>sygnal-2</li>";',
+    validate: function(scene) {
+      const items = scene.querySelectorAll("#intel-feed li");
+      return items.length === 2 && items[0].textContent.trim() === "sygnal-1" && items[1].textContent.trim() === "sygnal-2";
+    }
+  },
+  {
+    id: 52,
+    topic: "children",
+    title: "Misja 52: Oznacz co drugi cel",
+    objective: "Krok 1: pobierz #arena. Krok 2: używając children ustaw style.outline = '2px solid gold' dla 2. i 4. dziecka.",
+    tips: ["Kolekcja children zawiera tylko elementy-dzieci i jest indeksowana od zera.", "Drugie dziecko to children[1], a czwarte to children[3]."],
+    starter: 'const arena = document.getElementById("arena");',
+    solution: 'const arena = document.getElementById("arena");\narena.children[1].style.outline = "2px solid gold";\narena.children[3].style.outline = "2px solid gold";',
+    validate: function(scene) {
+      const arena = scene.querySelector("#arena");
+      return arena && arena.children[1].style.outline === "2px solid gold" && arena.children[3].style.outline === "2px solid gold" && !arena.children[0].style.outline && !arena.children[2].style.outline && !arena.children[4].style.outline;
+    }
+  },
+  {
+    id: 53,
+    topic: "style",
+    title: "Misja 53: Zaznacz statusy",
+    objective: "Pobierz wszystkie elementy .status i ustaw im style.fontWeight na '700'.",
+    tips: ["querySelectorAll() zwróci NodeList, po której możesz przejść przez forEach().", "fontWeight ustawiasz jako tekst, np. '700'."],
+    starter: 'const statuses = document.querySelectorAll(".status");',
+    solution: 'const statuses = document.querySelectorAll(".status");\nstatuses.forEach(function(status) {\n  status.style.fontWeight = "700";\n});',
+    validate: function(scene) {
+      const statuses = scene.querySelectorAll(".status");
+      return statuses.length > 0 && Array.from(statuses).every(function(status) { return status.style.fontWeight === "700"; });
+    }
+  },
+  {
+    id: 54,
+    topic: "createElement + append",
+    title: "Misja 54: Dopisz nowy raport",
+    objective: "Krok 1: utwórz element li. Krok 2: ustaw jego textContent na 'raport-delta'. Krok 3: dodaj go na koniec #archive-list.",
+    tips: ["append() dodaje nowy element na koniec rodzica.", "Najpierw utwórz li, potem ustaw tekst, a dopiero na końcu dopnij go do listy."],
+    starter: 'const archiveList = document.getElementById("archive-list");',
+    solution: 'const archiveList = document.getElementById("archive-list");\nconst li = document.createElement("li");\nli.textContent = "raport-delta";\narchiveList.append(li);',
+    validate: function(scene) {
+      const last = scene.querySelector("#archive-list li:last-child");
+      return last && last.textContent.trim() === "raport-delta";
+    }
+  },
+  {
+    id: 55,
+    topic: "remove",
+    title: "Misja 55: Usuń opis archiwum",
+    objective: "Pobierz paragraf znajdujący się w #archive-panel i usuń go ze strony.",
+    tips: ["Możesz pobrać paragraf selektorem '#archive-panel p'.", "remove() całkowicie usuwa wskazany element z DOM."],
+    starter: 'const archiveLabel = document.querySelector("#archive-panel p");',
+    solution: 'const archiveLabel = document.querySelector("#archive-panel p");\narchiveLabel.remove();',
+    validate: function(scene) {
+      return !scene.querySelector("#archive-panel p");
+    }
+  },
+  {
+    id: 56,
+    topic: "createElement + append",
+    title: "Misja 56: Dodaj notatkę do panelu",
+    objective: "Krok 1: utwórz element p o id 'ops-note'. Krok 2: ustaw jego textContent na 'Tryb nocny aktywny'. Krok 3: dodaj go na koniec #ops-panel.",
+    tips: ["Nowy element możesz od razu oznaczyć przez note.id = 'ops-note'.", "Po append() paragraf ma znaleźć się wewnątrz panelu #ops-panel."],
+    starter: 'const opsPanel = document.getElementById("ops-panel");',
+    solution: 'const opsPanel = document.getElementById("ops-panel");\nconst note = document.createElement("p");\nnote.id = "ops-note";\nnote.textContent = "Tryb nocny aktywny";\nopsPanel.append(note);',
+    validate: function(scene) {
+      const note = scene.querySelector("#ops-note");
+      const panel = scene.querySelector("#ops-panel");
+      return note && panel && note.parentElement === panel && note.textContent.trim() === "Tryb nocny aktywny";
+    }
+  },
+  {
+    id: 57,
+    topic: "querySelectorAll",
+    title: "Misja 57: Oznacz wszystkie cele",
+    objective: "Pobierz wszystkie .character i przez forEach dodaj każdemu klasę 'tagged'.",
+    tips: ["querySelectorAll() zwraca NodeList, więc możesz od razu użyć forEach().", "W ciele pętli wywołaj card.classList.add('tagged')."],
+    starter: 'const cards = document.querySelectorAll(".character");',
+    solution: 'const cards = document.querySelectorAll(".character");\ncards.forEach(function(card) {\n  card.classList.add("tagged");\n});',
+    validate: function(scene) {
+      const cards = scene.querySelectorAll(".character");
+      return cards.length > 0 && Array.from(cards).every(function(card) { return card.classList.contains("tagged"); });
+    }
+  },
+  {
+    id: 58,
+    topic: "children",
+    title: "Misja 58: Pokoloruj co drugi",
+    objective: "Krok 1: pobierz #arena. Krok 2: używając pętli for ustaw style.outline = '2px solid gold' dla elementów o indeksach 1, 3, 5... w arena.children.",
+    tips: ["W pętli for możesz zacząć od i = 1 i zwiększać i o 2.", "children to kolekcja elementów-dzieci rodzica."],
+    starter: 'const arena = document.getElementById("arena");',
+    solution: 'const arena = document.getElementById("arena");\nfor (let i = 1; i < arena.children.length; i += 2) {\n  arena.children[i].style.outline = "2px solid gold";\n}',
+    validate: function(scene) {
+      const arena = scene.querySelector("#arena");
+      if (!arena) return false;
+      for (let i = 0; i < arena.children.length; i++) {
+        const outlined = arena.children[i].style.outlineWidth === "2px" && arena.children[i].style.outlineStyle === "solid";
+        if (i % 2 === 1 && !outlined) return false;
+        if (i % 2 === 0 && outlined) return false;
+      }
+      return true;
+    }
+  },
+  {
+    id: 59,
+    topic: "querySelectorAll",
+    title: "Misja 59: Numeracja drużyny",
+    objective: "Pobierz wszystkie elementy '#squad-list li' i przez forEach ustaw każdemu textContent w formacie 'Cel X', gdzie X to numer od 1.",
+    tips: ["forEach przekazuje drugi argument index.", "Wzór: item.textContent = 'Cel ' + (index + 1)."],
+    starter: 'const squadItems = document.querySelectorAll("#squad-list li");',
+    solution: 'const squadItems = document.querySelectorAll("#squad-list li");\nsquadItems.forEach(function(item, index) {\n  item.textContent = "Cel " + (index + 1);\n});',
+    validate: function(scene) {
+      const items = scene.querySelectorAll("#squad-list li");
+      return items.length === 3 && items[0].textContent.trim() === "Cel 1" && items[1].textContent.trim() === "Cel 2" && items[2].textContent.trim() === "Cel 3";
+    }
+  },
+  {
+    id: 60,
+    topic: "style",
+    title: "Misja 60: Styl statusów pętlą",
+    objective: "Pobierz wszystkie .status i w pętli forEach ustaw style.textTransform na 'uppercase' oraz style.letterSpacing na '1px'.",
+    tips: ["Na każdym elemencie status ustaw obie właściwości stylu.", "textTransform i letterSpacing zapisujemy camelCase."],
+    starter: 'const statuses = document.querySelectorAll(".status");',
+    solution: 'const statuses = document.querySelectorAll(".status");\nstatuses.forEach(function(status) {\n  status.style.textTransform = "uppercase";\n  status.style.letterSpacing = "1px";\n});',
+    validate: function(scene) {
+      const statuses = scene.querySelectorAll(".status");
+      return statuses.length > 0 && Array.from(statuses).every(function(status) {
+        return status.style.textTransform === "uppercase" && status.style.letterSpacing === "1px";
+      });
+    }
+  },
+  {
+    id: 61,
+    topic: "createElement + append",
+    title: "Misja 61: Dodaj trzy komunikaty",
+    objective: "Krok 1: pobierz #intel-feed. Krok 2: przez pętlę dodaj trzy elementy li z tekstami: 'ping-1', 'ping-2', 'ping-3'.",
+    tips: ["W każdej iteracji utwórz nowe li i dopnij je przez append().", "Uważaj, aby dodać dokładnie trzy wpisy."],
+    starter: 'const feed = document.getElementById("intel-feed");',
+    solution: 'const feed = document.getElementById("intel-feed");\n["ping-1", "ping-2", "ping-3"].forEach(function(text) {\n  const li = document.createElement("li");\n  li.textContent = text;\n  feed.append(li);\n});',
+    validate: function(scene) {
+      const items = scene.querySelectorAll("#intel-feed li");
+      return items.length === 3 && items[0].textContent.trim() === "ping-1" && items[1].textContent.trim() === "ping-2" && items[2].textContent.trim() === "ping-3";
+    }
+  },
+  {
+    id: 62,
+    topic: "remove",
+    title: "Misja 62: Wyczyść wszystkie statusy",
+    objective: "Pobierz wszystkie elementy .status i usuń je ze strony (masowe usuwanie).",
+    tips: ["Najpierw pobierz listę elementów, potem przejdź po niej pętlą i wywołaj remove().", "Po wykonaniu zadania nie powinno zostać ani jedno .status."],
+    starter: 'const statuses = document.querySelectorAll(".status");',
+    solution: 'const statuses = document.querySelectorAll(".status");\nstatuses.forEach(function(status) {\n  status.remove();\n});',
+    validate: function(scene) {
+      return scene.querySelectorAll(".status").length === 0;
+    }
+  },
+  {
+    id: 63,
+    topic: "createElement + append",
+    title: "Misja 63: Rozbuduj archiwum",
+    objective: "Pobierz #archive-list i dodaj do niego pięć nowych li: 'raport-d1' do 'raport-d5'.",
+    tips: ["W pętli for łatwo wygenerujesz kolejne nazwy wpisów.", "Nowe raporty dodawaj append() na końcu listy."],
+    starter: 'const archiveList = document.getElementById("archive-list");',
+    solution: 'const archiveList = document.getElementById("archive-list");\nfor (let i = 1; i <= 5; i++) {\n  const li = document.createElement("li");\n  li.textContent = "raport-d" + i;\n  archiveList.append(li);\n}',
+    validate: function(scene) {
+      const items = scene.querySelectorAll("#archive-list li");
+      return items.length === 8 && items[3].textContent.trim() === "raport-d1" && items[7].textContent.trim() === "raport-d5";
+    }
+  },
+  {
+    id: 64,
+    topic: "removeChild",
+    title: "Misja 64: Zostaw tylko pierwszy raport",
+    objective: "Pobierz #archive-list i przez pętlę usuwaj dzieci tak długo, aż zostanie tylko pierwszy element li.",
+    tips: ["Możesz użyć while (archiveList.children.length > 1).", "W removeChild usuń np. archiveList.lastElementChild."],
+    starter: 'const archiveList = document.getElementById("archive-list");',
+    solution: 'const archiveList = document.getElementById("archive-list");\nwhile (archiveList.children.length > 1) {\n  archiveList.removeChild(archiveList.lastElementChild);\n}',
+    validate: function(scene) {
+      const list = scene.querySelector("#archive-list");
+      return list && list.children.length === 1 && list.children[0].textContent.trim() === "raport-alpha";
+    }
+  },
+  {
+    id: 65,
+    topic: "style",
+    title: "Misja 65: Styl kart - promień i tło",
+    objective: "Pobierz wszystkie .character i ustaw każdej karcie style.borderRadius na '18px' oraz style.backgroundColor na 'rgba(22, 31, 56, 0.85)'.",
+    tips: ["To pierwszy poziom bloku stylowania kart postaci.", "Najwygodniej zrobić to pętlą forEach po .character."],
+    starter: 'const cards = document.querySelectorAll(".character");',
+    solution: 'const cards = document.querySelectorAll(".character");\ncards.forEach(function(card) {\n  card.style.borderRadius = "18px";\n  card.style.backgroundColor = "rgba(22, 31, 56, 0.85)";\n});',
+    validate: function(scene) {
+      const cards = scene.querySelectorAll(".character");
+      return cards.length > 0 && Array.from(cards).every(function(card) {
+        return card.style.borderRadius === "18px" && card.style.backgroundColor !== "";
+      });
+    }
+  },
+  {
+    id: 66,
+    topic: "style",
+    title: "Misja 66: Styl listy - zebra",
+    objective: "Pobierz elementy '#squad-list li' i ustaw style.backgroundColor tylko dla parzystych pozycji (2, 4, ...) na 'rgba(120, 170, 255, 0.2)'.",
+    tips: ["Parzyste pozycje mają indeks nieparzysty (1, 3, ...).", "Nie ustawiaj tła dla pozycji nieparzystych."],
+    starter: 'const squadItems = document.querySelectorAll("#squad-list li");',
+    solution: 'const squadItems = document.querySelectorAll("#squad-list li");\nfor (let i = 1; i < squadItems.length; i += 2) {\n  squadItems[i].style.backgroundColor = "rgba(120, 170, 255, 0.2)";\n}',
+    validate: function(scene) {
+      const items = scene.querySelectorAll("#squad-list li");
+      if (items.length === 0) return false;
+      for (let i = 0; i < items.length; i++) {
+        const hasColor = items[i].style.backgroundColor !== "";
+        if (i % 2 === 1 && !hasColor) return false;
+        if (i % 2 === 0 && hasColor) return false;
+      }
+      return true;
+    }
+  },
+  {
+    id: 67,
+    topic: "style",
+    title: "Misja 67: Styl kart wg zagrożenia",
+    objective: "Pobierz wszystkie .character i dla kart z data-threat >= 9 ustaw style.outline na '2px solid crimson', a dla pozostałych style.outline na '2px solid limegreen'.",
+    tips: ["Odczytaj zagrożenie przez Number(card.dataset.threat).", "Użyj warunku if/else wewnątrz pętli."],
+    starter: 'const cards = document.querySelectorAll(".character");',
+    solution: 'const cards = document.querySelectorAll(".character");\ncards.forEach(function(card) {\n  const threat = Number(card.dataset.threat);\n  if (threat >= 9) {\n    card.style.outline = "2px solid crimson";\n  } else {\n    card.style.outline = "2px solid limegreen";\n  }\n});',
+    validate: function(scene) {
+      const cards = scene.querySelectorAll(".character");
+      if (cards.length === 0) return false;
+      return Array.from(cards).every(function(card) {
+        const threat = Number(card.dataset.threat);
+        const outlineColor = card.style.outlineColor;
+        if (threat >= 9) return outlineColor.indexOf("crimson") !== -1 || outlineColor.indexOf("220") !== -1;
+        return outlineColor.indexOf("limegreen") !== -1 || outlineColor.indexOf("50") !== -1;
+      });
+    }
+  },
+  {
+    id: 68,
+    topic: "style",
+    title: "Misja 68: Finalny polish kart i listy",
+    objective: "Krok 1: ustaw wszystkim .character style.boxShadow na '0 0 0 2px rgba(255,255,255,0.15)'. Krok 2: ustaw wszystkim '#archive-list li' style.fontStyle na 'italic'.",
+    tips: ["To finałowy poziom bloku stylowania: jednocześnie karty i lista.", "Zrób dwie osobne pętle: jedną po kartach, drugą po wpisach archiwum."],
+    starter: 'const cards = document.querySelectorAll(".character");',
+    solution: 'const cards = document.querySelectorAll(".character");\ncards.forEach(function(card) {\n  card.style.boxShadow = "0 0 0 2px rgba(255,255,255,0.15)";\n});\nconst archiveItems = document.querySelectorAll("#archive-list li");\narchiveItems.forEach(function(item) {\n  item.style.fontStyle = "italic";\n});',
+    validate: function(scene) {
+      const cards = scene.querySelectorAll(".character");
+      const archiveItems = scene.querySelectorAll("#archive-list li");
+      if (!cards.length || !archiveItems.length) return false;
+      const cardsOk = Array.from(cards).every(function(card) { return card.style.boxShadow !== ""; });
+      const listOk = Array.from(archiveItems).every(function(item) { return item.style.fontStyle === "italic"; });
+      return cardsOk && listOk;
+    }
   }
 ];
 
 const METHOD_GUIDES = {
   "getElementById": {
-    summary: "Pobiera jeden element po jego id. To dobra metoda, gdy znasz dokladne id elementu.",
+    summary: "Pobiera jeden element po jego id. To dobra metoda, gdy znasz dokładne id elementu.",
     example: 'const el = document.getElementById("deadpool");'
   },
   "querySelector": {
-    summary: "Zwraca tylko pierwszy element pasujacy do selektora CSS (albo null, jesli nic nie znaleziono).",
+    summary: "Zwraca tylko pierwszy element pasujacy do selektora CSS (albo null, jeśli nic nie znaleziono).",
     example: 'const el = document.querySelector("#venom .status");'
   },
   "querySelectorAll": {
@@ -973,8 +1284,24 @@ const METHOD_GUIDES = {
     example: 'const parent = status.parentElement;'
   },
   "children": {
-    summary: "Zwraca kolekcje dzieci-elementów znajdujacych sie bezposrednio wewnątrz rodzica.",
+    summary: "Zwraca kolekcje dzieci-elementów znajdujacych się bezposrednio wewnątrz rodzica.",
     example: 'const third = list.children[2];'
+  },
+  "getElementsByTagName": {
+    summary: "Pobiera elementy po nazwie tagu, np. wszystkie li, article albo p. Zwraca zywa kolekcje HTMLCollection.",
+    example: 'const items = document.getElementsByTagName("li");'
+  },
+  "textContent": {
+    summary: "Odczytuje albo podmienia sam tekst elementu, bez interpretowania HTML.",
+    example: 'status.textContent = "Status: GOTOWE";'
+  },
+  "innerHTML": {
+    summary: "Pozwala wstawic lub odczytac zawartosc HTML wewnątrz elementu. Uzywaj go wtedy, gdy chcesz podmienic cale wnętrze elementu na markup.",
+    example: 'feed.innerHTML = "<li>sygnal-1</li><li>sygnal-2</li>";'
+  },
+  "style": {
+    summary: "Ustawia style inline bezposrednio na elemencie przez obiekt style i nazwy właściwosci zapisane camelCase.",
+    example: 'panel.style.backgroundColor = "rgb(132, 255, 181)";'
   },
   "classList.add": {
     summary: "Dodaje klasę CSS do elementu.",
@@ -1045,11 +1372,11 @@ const METHOD_GUIDES = {
     example: 'predator.remove();'
   },
   "removeChild": {
-    summary: "Usuwa wskazane dziecko z rodzica. Metode wywolujesz na rodzicu, a nie na samym dziecku.",
+    summary: "Usuwa wskazane dziecko z rodzica. Metode wywołujesz na rodzicu, a nie na samym dziecku.",
     example: 'list.removeChild(list.firstElementChild);'
   },
   "addEventListener click": {
-    summary: "Dodaje reakcje na klikniecie.",
+    summary: "Dodaje reakcje na kliknięcie.",
     example: 'button.addEventListener("click", handler);'
   },
   "addEventListener input": {
@@ -1057,11 +1384,11 @@ const METHOD_GUIDES = {
     example: 'input.addEventListener("input", handler);'
   },
   "event delegation": {
-    summary: "Ustawia jeden listener na rodzicu i obsluguje dzieci przez event.target.",
+    summary: "Ustawia jeden listener na rodzicu i obsługuje dzieci przez event.target.",
     example: 'list.addEventListener("click", (event) => {\n  if (event.target.matches("li")) { }\n});'
   },
   "addEventListener once": {
-    summary: "Listener wykona sie tylko raz.",
+    summary: "Listener wykona się tylko raz.",
     example: 'button.addEventListener("click", handler, { once: true });'
   },
   "removeEventListener": {
@@ -1077,7 +1404,7 @@ const METHOD_GUIDES = {
     example: 'arena.addEventListener("click", handler, { capture: true });'
   },
   "CustomEvent": {
-    summary: "Obsluguje lub tworzy wlasne zdarzenia aplikacji.",
+    summary: "Obsługuje lub tworzy wlasne zdarzenia aplikacji.",
     example: 'root.addEventListener("hunt:complete", handler);'
   }
 };
@@ -1090,7 +1417,7 @@ const TOPIC_BEGINNER_TIPS = {
   "querySelector": [
     "querySelector przyjmuje selektor CSS zapisany jako tekst.",
     "#(hash) oznacza id, .(kropka) oznacza klasę, a spacja oznacza element wewnątrz innego elementu.",
-    "Jesli selektor pasuje do kilku elementów, dostaniesz tylko pierwszy z nich."
+    "Jeśli selektor pasuje do kilku elementów, dostaniesz tylko pierwszy z nich."
   ],
   "querySelectorAll": [
     "querySelectorAll zwraca NodeList — możesz od razu użyć na niej forEach().",
@@ -1100,7 +1427,7 @@ const TOPIC_BEGINNER_TIPS = {
   "getElementsByClassName": [
     "getElementsByClassName zwraca HTMLCollection, a nie NodeList — HTMLCollection nie ma forEach().",
     "Aby użyć forEach na HTMLCollection, przekształć ją najpierw: Array.from(collection).forEach(...).",
-    "Do pojedynczego elementu z tej kolekcji dostajesz sie np. przez [0] albo [1]."
+    "Do pojedynczego elementu z tej kolekcji dostajesz się np. przez [0] albo [1]."
   ],
   "closest": [
     "closest() jest przydatne, gdy startujesz od dziecka i chcesz dojsc do najblizszego pasujacego rodzica."
@@ -1112,6 +1439,23 @@ const TOPIC_BEGINNER_TIPS = {
     "children zwraca same elementy-dzieci bez tekstow i komentarzy.",
     "Elementy w children pobierasz po indeksie: 0, 1, 2..."
   ],
+  "getElementsByTagName": [
+    "getElementsByTagName() zwraca HTMLCollection, czyli kolekcję wielu elementów o danym tagu.",
+    "Metodę możesz wywołać na document albo na konkretnym elemencie-rodzicu, żeby zawęzić obszar wyszukiwania.",
+    "HTMLCollection nie ma forEach(), więc pojedyncze elementy pobierasz po indeksie albo zamieniasz kolekcję przez Array.from(...)."
+  ],
+  "textContent": [
+    "textContent traktuje wszystko jako zwykły tekst, więc nie tworzy nowych tagów HTML.",
+    "Gdy ustawiasz textContent, stara treść tekstowa elementu zostaje zastąpiona nową wartością."
+  ],
+  "innerHTML": [
+    "innerHTML interpretuje przekazany tekst jako HTML i wstawia nowe elementy do środka.",
+    "Po ustawieniu innerHTML dotychczasowa zawartość elementu zostaje podmieniona."
+  ],
+  "style": [
+    "W JavaScript właściwości CSS zapisujesz camelCase, np. backgroundColor zamiast background-color.",
+    "style dotyczy stylów inline tylko dla konkretnego elementu."
+  ],
   "classList.add": [
     "classList.add() dodaje klasę, ale nie usuwa innych klas elementu."
   ],
@@ -1119,7 +1463,7 @@ const TOPIC_BEGINNER_TIPS = {
     "classList.remove() usuwa tylko wskazana klasę, reszta klas zostaje bez zmian."
   ],
   "classList.toggle": [
-    "toggle() dziala jak przełącznik: jesli klasy nie ma, doda ja; jesli jest, usunie ja."
+    "toggle() dziala jak przełącznik: jeśli klasy nie ma, doda ja; jeśli jest, usunie ja."
   ],
   "classList.contains": [
     "contains() nic nie zmienia w DOM. Ona tylko sprawdza i zwraca true albo false."
@@ -1146,49 +1490,49 @@ const TOPIC_BEGINNER_TIPS = {
     "Najwygodniej zmienic wybrana opcje przez ustawienie value na select."
   ],
   "createElement + append": [
-    "Najpierw tworzysz element, potem ustawiasz mu tekst, klasy albo atrybuty, a na koncu dodajesz go do DOM."
+    "Najpierw tworzysz element, potem ustawiasz mu tekst, klasy albo atrybuty, a na końcu dodajesz go do DOM."
   ],
   "prepend": [
     "prepend() dodaje nowy element na poczatek zawartośći rodzica."
   ],
   "before": [
-    "before() wywolujesz na elemencie, przed ktorym chcesz cos wstawic."
+    "before() wywołujesz na elemencie, przed ktorym chcesz cos wstawic."
   ],
   "after": [
-    "after() wywolujesz na elemencie, za ktorym chcesz cos wstawic."
+    "after() wywołujesz na elemencie, za ktorym chcesz cos wstawic."
   ],
   "insertBefore": [
-    "insertBefore() wywolujesz na rodzicu: parent.insertBefore(nowyElement, elementOdniesienia)."
+    "insertBefore() wywołujesz na rodzicu: parent.insertBefore(nowyElement, elementOdniesienia)."
   ],
   "remove": [
     "remove() calkowicie usuwa element z drzewa DOM."
   ],
   "removeChild": [
-    "removeChild() wywolujesz na rodzicu i przekazujesz mu dziecko do usuniecia."
+    "removeChild() wywołujesz na rodzicu i przekazujesz mu dziecko do usuniecia."
   ],
   "addEventListener click": [
-    "Listener click odpala funkcje po kliknieciu elementu."
+    "Listener click odpala funkcje po kliknięciu elementu."
   ],
   "addEventListener input": [
-    "Zdarzenie input odpala sie podczas wpisywania do pola tekstowego."
+    "Zdarzenie input odpala się podczas wpisywania do pola tekstowego."
   ],
   "event delegation": [
-    "Delegacja oznacza, ze listener wieszasz na rodzicu, a klikniete dziecko rozpoznajesz przez event.target."
+    "Delegacja oznacza, że listener wieszasz na rodzicu, a kliknięte dziecko rozpoznajesz przez event.target."
   ],
   "addEventListener once": [
-    "Opcja { once: true } sprawia, ze listener sam usunie sie po pierwszym wywolaniu."
+    "Opcja { once: true } sprawia, że listener sam usunie się po pierwszym wywołaniu."
   ],
   "removeEventListener": [
-    "Aby removeEventListener zadzialalo, musisz przekazac te sama funkcje, ktora byla dodana."
+    "Aby removeEventListener zadziałało, musisz przekazać tą samą funkcję, która była dodana."
   ],
   "stopPropagation": [
-    "stopPropagation() zatrzymuje przechodzenie zdarzenia do rodzicow w fazie bubbling."
+    "stopPropagation() zatrzymuje przechodzenie zdarzenia do rodziców w fazie bubbling."
   ],
   "capture phase": [
-    "Capture to faza, w ktorej zdarzenie schodzi od rodzica do dziecka, zanim dotrze do kliknietego elementu."
+    "Capture to faza, w ktorej zdarzenie schodzi od rodzica do dziecka, zanim dotrze do klikniętego elementu."
   ],
   "CustomEvent": [
-    "CustomEvent pozwala tworzyc wlasne zdarzenia, np. 'hunt:complete'."
+    "CustomEvent pozwala tworzyć własne zdarzenia, np. 'hunt:complete'."
   ]
 };
 
@@ -1200,10 +1544,10 @@ const SCENE_SELECTOR_GUIDES = {
   "#pennywise": "karta postaci Pennywise'a. To element <article> w sekcji #arena.",
   "#alien": "karta postaci Aliena. To element <article> w sekcji #arena.",
   "#venom": "karta postaci Venoma. To element <article> w sekcji #arena.",
-  "#venom .status": "paragraf <p class=\"status\"> znajdujacy sie wewnątrz karty Venoma.",
+  "#venom .status": "paragraf <p class=\"status\"> znajdujacy się wewnątrz karty Venoma.",
   "#alert-panel": "panel alarmu. To element <div> w sekcji narzedzi.",
   "#panic-button": "przycisk 'Panika!'. To element <button>.",
-  "#panic-count": "licznik klikniec obok przycisku 'Panika!'. To element <span>.",
+  "#panic-count": "licznik kliknięć obok przycisku 'Panika!'. To element <span>.",
   "#codeword": "pole tekstowe do wpisywania kodu operacyjnego. To element <input>.",
   "#codeword-preview": "paragraf pokazujacy podglad wpisanego kodu.",
   "#ops-form": "formularz z kontrolkami do cwiczen disabled, checked i selected.",
@@ -1211,7 +1555,7 @@ const SCENE_SELECTOR_GUIDES = {
   "#target-priority": "pole select z opcjami priorytetu celu.",
   "#deploy-button": "przycisk formularza startowo zablokowany przez disabled.",
   "#squad-list": "lista druzyny. To element <ul> z elementami <li> w srodku.",
-  "#squad-list li": "elementy listy <li> znajdujace sie wewnątrz #squad-list.",
+  "#squad-list li": "elementy listy <li> znajdujace się wewnątrz #squad-list.",
   "#archive-list": "lista raportów przygotowana do cwiczenia removeChild().",
   "#mission-status": "paragraf statusu misji w ostatnim panelu.",
   "#intel-feed": "lista raportów wywiadu. To element <ul> na wpisy <li>.",
@@ -1351,6 +1695,18 @@ function detectSecondaryOperations(objective) {
     });
   }
 
+  const innerHtmlMatch = matchObjectivePattern(objective, [
+    /innerHTML\s+na\s+['"]([^'"]+)['"]/i,
+    /ustaw\s+(?:jego\s+)?innerHTML\s+na\s+['"]([^'"]+)['"]/i
+  ]);
+  if (innerHtmlMatch) {
+    ops.push({
+      label: "innerHTML",
+      summary: "Podmienia całe wnętrze elementu na nowy HTML.",
+      example: 'element.innerHTML = "' + innerHtmlMatch[1] + '";'
+    });
+  }
+
   const addClassMatch = matchObjectivePattern(objective, [
     /dodaj(?:\s+[^\s'.]+){0,4}\s+klasę\s+['"]?([a-zA-Z0-9_-]+)['"]?/i,
     /classList\.add\(\s*['"]([a-zA-Z0-9_-]+)['"]\s*\)/i
@@ -1358,7 +1714,7 @@ function detectSecondaryOperations(objective) {
   if (addClassMatch) {
     ops.push({
       label: "classList.add",
-      summary: "Dodaje nowa klasę CSS do elementu.",
+      summary: "Dodaje nową klasę CSS do elementu.",
       example: 'element.classList.add("' + addClassMatch[1] + '");'
     });
   }
@@ -1382,7 +1738,7 @@ function detectSecondaryOperations(objective) {
   if (toggleClassMatch) {
     ops.push({
       label: "classList.toggle",
-      summary: "Przełącza klasę: dodaje lub usuwa ja przy kolejnym wywolaniu.",
+      summary: "Przełącza klasę: dodaje lub usuwa ja przy kolejnym wywołaniu.",
       example: 'element.classList.toggle("' + toggleClassMatch[1] + '");'
     });
   }
@@ -1422,15 +1778,15 @@ function detectSecondaryOperations(objective) {
   if (/listener|nasluchuj|addEventListener/i.test(objective)) {
     ops.push({
       label: "addEventListener",
-      summary: "Podpina funkcje, ktora wykona sie po zdarzeniu.",
+      summary: "Podpina funkcje, która wykona się po zdarzeniu.",
       example: 'element.addEventListener("click", handler);'
     });
   }
 
   if (/\bonce\b/i.test(objective)) {
     ops.push({
-      label: "once",
-      summary: "Opcja listenera: zdarzenie obsluzy sie tylko raz.",
+      label: "Listener",
+      summary: "Opcja listenera: zdarzenie obsłuży się tylko raz.",
       example: 'element.addEventListener("click", handler, { once: true });'
     });
   }
@@ -1456,10 +1812,10 @@ function getSelectorGuideText(selector) {
     return "To kilka selektorow oddzielonych przecinkiem. Element pasuje, jezeli spelnia przynajmniej jeden z nich.";
   }
   if (selector.indexOf(" ") !== -1) {
-    return "To selektor zagniezdzony. Fragment po prawej musi znajdowac sie wewnątrz fragmentu po lewej.";
+    return "To selektor zagniezdzony. Fragment po prawej musi znajdowac się wewnątrz fragmentu po lewej.";
   }
   if (selector.indexOf(":nth-child(") !== -1) {
-    return "To selektor pozycyjny. Pozwala wskazac element na konkretnej pozycji w liscie rodzenstwa.";
+    return "To selektor pozycyjny. Pozwala wskazac element na konkretnej pozycji w liście rodzenstwa.";
   }
   return "To selektor CSS uzywany do znalezienia elementu w drzewie DOM.";
 }
@@ -1474,10 +1830,15 @@ function renderOperationsHtml(operations) {
   return html;
 }
 
-const SELECTOR_TOPICS = ["getElementById", "querySelector", "querySelectorAll", "getElementsByClassName", "closest", "parentElement", "children"];
+const SELECTOR_TOPICS = ["getElementById", "querySelector", "querySelectorAll", "getElementsByClassName", "getElementsByTagName", "closest", "parentElement", "children"];
 
 function detectRetrievalOpFromStarter(starter) {
   if (!starter) return null;
+  if (/getElementsByTagName/.test(starter)) {
+    const m = starter.match(/getElementsByTagName\(["']([^"']+)["']\)/);
+    const ex = m ? 'const items = document.getElementsByTagName("' + m[1] + '");' : METHOD_GUIDES["getElementsByTagName"].example;
+    return { label: "getElementsByTagName", summary: METHOD_GUIDES["getElementsByTagName"].summary, example: ex };
+  }
   if (/getElementsByClassName/.test(starter)) {
     const m = starter.match(/getElementsByClassName\(["']([^"']+)["']\)/);
     const ex = m ? 'const items = document.getElementsByClassName("' + m[1] + '");' : METHOD_GUIDES["getElementsByClassName"].example;
@@ -1541,6 +1902,9 @@ const runBtn           = document.getElementById("run-btn");
 const nextBtn          = document.getElementById("next-btn");
 const solutionBtn      = document.getElementById("solution-btn");
 const resetBtn         = document.getElementById("reset-progress");
+const exportBtn        = document.getElementById("export-progress");
+const importBtn        = document.getElementById("import-progress");
+const importFileInput  = document.getElementById("import-progress-file");
 const examToggleBtn    = document.getElementById("exam-toggle");
 const randomSceneBtn   = document.getElementById("random-scene-btn");
 const finishGameBtn    = document.getElementById("finish-game");
@@ -1551,27 +1915,108 @@ const missionNavList   = document.getElementById("mission-nav-list");
 const domInspectorTip  = createDomInspectorTip();
 let codeEditor = null;
 
+const DEFAULT_STATE = { currentMission: 0, completed: [], examMode: false, missionFilter: "all" };
+const ALLOWED_FILTERS = { all: true, selectors: true, attributes: true, "dom-build": true, events: true };
+
+function createDefaultState() {
+  return {
+    currentMission: 0,
+    completed: [],
+    examMode: false,
+    missionFilter: "all"
+  };
+}
+
 let state = loadState();
 missionTotal.textContent = String(missions.length);
 
 function loadState() {
   const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return { currentMission: 0, completed: [], examMode: false, missionFilter: "all" };
+  if (!raw) return createDefaultState();
   try {
-    const parsed = JSON.parse(raw);
-    return {
-      currentMission: Number(parsed.currentMission) || 0,
-      completed: Array.isArray(parsed.completed) ? parsed.completed : [],
-      examMode: Boolean(parsed.examMode),
-      missionFilter: typeof parsed.missionFilter === "string" ? parsed.missionFilter : "all"
-    };
+    return sanitizeImportedState(JSON.parse(raw));
   } catch(e) {
-    return { currentMission: 0, completed: [], examMode: false, missionFilter: "all" };
+    return createDefaultState();
   }
 }
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function sanitizeImportedState(input) {
+  const safe = createDefaultState();
+  const source = input && typeof input === "object" ? input : {};
+
+  const currentMission = Number(source.currentMission);
+  if (Number.isFinite(currentMission)) {
+    safe.currentMission = Math.min(Math.max(Math.floor(currentMission), 0), missions.length - 1);
+  }
+
+  if (Array.isArray(source.completed)) {
+    const validIds = [];
+    for (let i = 0; i < source.completed.length; i++) {
+      const value = Number(source.completed[i]);
+      if (!Number.isFinite(value)) continue;
+      const missionId = Math.floor(value);
+      if (missionId >= 1 && missionId <= missions.length && validIds.indexOf(missionId) === -1) {
+        validIds.push(missionId);
+      }
+    }
+    safe.completed = validIds;
+  }
+
+  safe.examMode = Boolean(source.examMode);
+
+  if (typeof source.missionFilter === "string" && ALLOWED_FILTERS[source.missionFilter]) {
+    safe.missionFilter = source.missionFilter;
+  }
+
+  return safe;
+}
+
+function buildExportPayload() {
+  return {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    state: {
+      currentMission: state.currentMission,
+      completed: state.completed.slice(),
+      examMode: state.examMode,
+      missionFilter: state.missionFilter
+    }
+  };
+}
+
+function downloadProgressFile() {
+  const payload = buildExportPayload();
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  const datePart = new Date().toISOString().slice(0, 10);
+  link.href = url;
+  link.download = "dom-hunters-progress-" + datePart + ".json";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function applyImportedProgress(rawText) {
+  let parsed;
+  try {
+    parsed = JSON.parse(rawText);
+  } catch (error) {
+    setConsole("err", "Niepoprawny plik JSON. Sprawdz format eksportu.");
+    return;
+  }
+
+  const candidate = parsed && parsed.state ? parsed.state : parsed;
+  state = sanitizeImportedState(candidate);
+  saveState();
+  renderMission();
+  setConsole("ok", "Postep zostal zaimportowany.");
 }
 
 function uniqueCompletedCount() {
@@ -1596,14 +2041,12 @@ function getHighestUnlockedIndex() {
 }
 
 function isMissionUnlocked(index) {
-  if (index === state.currentMission) return true;
-  if (state.completed.indexOf(index + 1) !== -1) return true;
-  return index <= getHighestUnlockedIndex();
+  return index >= 0 && index < missions.length;
 }
 
 function getMissionCategory(topic) {
-  if (/getElementById|getElementsByClassName|querySelector|querySelectorAll|closest|parentElement|children/i.test(topic)) return "selectors";
-  if (/classList|setAttribute|getAttribute|dataset|disabled|checked|selected/i.test(topic)) return "attributes";
+  if (/getElementById|getElementsByClassName|getElementsByTagName|querySelector|querySelectorAll|closest|parentElement|children/i.test(topic)) return "selectors";
+  if (/classList|setAttribute|getAttribute|dataset|disabled|checked|selected|textContent|innerHTML|style/i.test(topic)) return "attributes";
   if (/createElement|append|prepend|before|after|insertBefore|remove$|removeChild/i.test(topic)) return "dom-build";
   return "events";
 }
@@ -1618,7 +2061,7 @@ function getFilterLabel(filter) {
   const labels = {
     all: "Wszystkie",
     selectors: "Selektory",
-    attributes: "Klasy i atrybuty",
+    attributes: "Atrybuty, treść i style",
     "dom-build": "Tworzenie DOM",
     events: "Zdarzenia"
   };
@@ -1665,10 +2108,6 @@ function renderMissionNavigator() {
     btn.className = "mission-chip";
     if (i === state.currentMission) btn.classList.add("active");
     if (state.completed.indexOf(mission.id) !== -1) btn.classList.add("completed");
-    if (!isMissionUnlocked(i)) {
-      btn.classList.add("locked");
-      btn.disabled = true;
-    }
     btn.dataset.index = String(i);
     btn.innerHTML = '<span class="mission-chip-number">' + mission.id + '</span><span class="mission-chip-label">' + escapeHtml(mission.topic) + '</span><span class="mission-chip-difficulty ' + difficulty.key + '">' + difficulty.label + '</span>';
     missionNavList.appendChild(btn);
@@ -1828,7 +2267,14 @@ function applyExamMode() {
   examToggleBtn.textContent = active ? "Wylacz tryb egzaminu" : "Tryb egzaminu";
   examToggleBtn.dataset.active = String(active);
   missionTips.style.display = active ? "none" : "";
-  solutionBtn.style.display = active ? "none" : "";
+  updateSolutionButtonVisibility();
+}
+
+function updateSolutionButtonVisibility() {
+  const current = missions[state.currentMission];
+  const missionId = current ? current.id : 0;
+  const canShowSolution = !state.examMode && missionId >= 33 && missionId <= 36;
+  solutionBtn.style.display = canShowSolution ? "" : "none";
 }
 
 function renderMissionListTips(tips, current) {
@@ -2204,7 +2650,7 @@ function runCurrentMission() {
   try {
     passed = Boolean(current.validate(sceneRoot, returned));
   } catch (error) {
-    setConsole("err", "Kod sie uruchomil, ale walidacja misji nie przeszla: " + error.message);
+    setConsole("err", "Kod się uruchomil, ale walidacja misji nie przeszla: " + error.message);
     return;
   }
 
@@ -2246,10 +2692,6 @@ function runCurrentMission() {
 
 function goToMission(index) {
   if (index < 0 || index >= missions.length) return;
-  if (!isMissionUnlocked(index)) {
-    setConsole("err", "Ta misja jest jeszcze zablokowana. Najpierw zalicz poprzednie poziomy.");
-    return;
-  }
   state.currentMission = index;
   renderMission();
 }
@@ -2262,7 +2704,7 @@ function goToNextMission() {
     if (isGameComplete()) {
       setConsole("ok", "To byla ostatnia misja. Masz 100% i mozesz zakonczyc gre.");
     } else {
-      setConsole("err", "To ostatnia misja na liscie, ale gra konczy sie dopiero po zaliczeniu 100% misji.");
+      setConsole("err", "To ostatnia misja na liście, ale gra konczy się dopiero po zaliczeniu 100% misji.");
     }
   }
 }
@@ -2310,9 +2752,32 @@ randomSceneBtn.addEventListener("click", function() {
 });
 
 resetBtn.addEventListener("click", function() {
-  state = { currentMission: 0, completed: [], examMode: false, missionFilter: "all" };
+  state = createDefaultState();
   saveState();
   renderMission();
+});
+
+exportBtn.addEventListener("click", function() {
+  downloadProgressFile();
+  setConsole("ok", "Progres wyeksportowany do pliku JSON.");
+});
+
+importBtn.addEventListener("click", function() {
+  importFileInput.value = "";
+  importFileInput.click();
+});
+
+importFileInput.addEventListener("change", function(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(loadEvent) {
+    applyImportedProgress(String(loadEvent.target.result || ""));
+  };
+  reader.onerror = function() {
+    setConsole("err", "Nie udalo sie odczytac pliku z postepem.");
+  };
+  reader.readAsText(file, "utf-8");
 });
 
 attachDomInspector();

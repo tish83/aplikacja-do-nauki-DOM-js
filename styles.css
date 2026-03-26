@@ -698,9 +698,14 @@ select,
 
 .mission-chip-label {
   display: inline-block;
-  font-size: 0.8rem;
+  font-size: 0.65rem;
   color: #bfc8e5;
   vertical-align: middle;
+  max-width: 55px;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  line-height: 1.2;
 }
 
 #mission-tips {
