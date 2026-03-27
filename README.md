@@ -2,7 +2,11 @@
 
 Interaktywny projekt edukacyjny inspirowany konceptem MonsterJS, ale zbudowany od zera w czystym HTML, CSS i JavaScript.
 
-Motyw: Deadpool, Predator, Pennywise (klaun z IT), Alien, Venom.
+Autor: Kama Kaczmarek 
+
+Rok powstania: 2026
+
+Motyw: Deadpool, Predator, Pennywise, Alien, Venom.
 
 ## Co obejmuje ten projekt
 
