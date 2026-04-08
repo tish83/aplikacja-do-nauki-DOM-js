@@ -1914,6 +1914,8 @@ const missionFilterList = document.getElementById("mission-filter-list");
 const missionNavList   = document.getElementById("mission-nav-list");
 const domInspectorTip  = createDomInspectorTip();
 let codeEditor = null;
+let executionRunnerFrame = null;
+let executionRunnerReady = null;
 
 const DEFAULT_STATE = { currentMission: 0, completed: [], examMode: false, missionFilter: "all" };
 const ALLOWED_FILTERS = { all: true, selectors: true, attributes: true, "dom-build": true, events: true };
@@ -2133,6 +2135,33 @@ function createDomInspectorTip() {
   el.setAttribute("aria-hidden", "true");
   document.body.appendChild(el);
   return el;
+}
+
+function ensureExecutionRunner() {
+  if (executionRunnerReady) return executionRunnerReady;
+
+  executionRunnerReady = new Promise(function(resolve, reject) {
+    const frame = document.createElement("iframe");
+    frame.src = "./runner.html";
+    frame.title = "Hidden code runner";
+    frame.setAttribute("aria-hidden", "true");
+    frame.tabIndex = -1;
+    frame.style.display = "none";
+
+    frame.addEventListener("load", function() {
+      executionRunnerFrame = frame;
+      resolve(frame);
+    }, { once: true });
+
+    frame.addEventListener("error", function() {
+      executionRunnerReady = null;
+      reject(new Error("Nie udalo sie zaladowac bezpiecznego uruchamiacza kodu."));
+    }, { once: true });
+
+    document.body.appendChild(frame);
+  });
+
+  return executionRunnerReady;
 }
 
 function formatAttributesLine(el) {
@@ -2673,7 +2702,7 @@ function sanitizeSceneDom(sceneRoot) {
   }
 }
 
-function executeMissionCodeSafely(sourceCode, sceneRoot, helpers) {
+async function executeMissionCodeSafely(sourceCode, sceneRoot, helpers) {
   const unsafeReason = findUnsafeCodePattern(sourceCode);
   if (unsafeReason) {
     throw new Error("Kod zawiera zablokowany wzorzec: " + unsafeReason + ".");
@@ -2686,12 +2715,13 @@ function executeMissionCodeSafely(sourceCode, sceneRoot, helpers) {
     }
   });
 
-  const userFn = new Function(
-    "scene", "document", "helpers",
-    '"use strict";\nconst window = undefined;\nconst globalThis = undefined;\nconst self = undefined;\nconst top = undefined;\nconst parent = undefined;\n' + sourceCode
-  );
+  const runnerFrame = await ensureExecutionRunner();
+  const runnerWindow = runnerFrame.contentWindow;
+  if (!runnerWindow || typeof runnerWindow.runUserCode !== "function") {
+    throw new Error("Uruchamiacz kodu nie jest gotowy.");
+  }
 
-  const returned = userFn(sandbox.scene, sandbox.document, safeHelpers);
+  const returned = runnerWindow.runUserCode(sourceCode, sandbox.scene, sandbox.document, safeHelpers);
   sanitizeSceneDom(sceneRoot);
   return returned;
 }
@@ -2715,7 +2745,7 @@ function renderMission() {
   focusMissionDescriptionStart();
 }
 
-function runCurrentMission() {
+async function runCurrentMission() {
   const current = missions[state.currentMission];
   
   renderBaseScene(sceneRoot);
@@ -2752,7 +2782,7 @@ function runCurrentMission() {
 
   let returned;
   try {
-    returned = executeMissionCodeSafely(getCurrentCode(), sceneRoot, helpers);
+    returned = await executeMissionCodeSafely(getCurrentCode(), sceneRoot, helpers);
   } catch (error) {
     setConsole("err", "Blad wykonania: " + error.message);
     return;
@@ -2964,4 +2994,7 @@ importFileInput.addEventListener("change", function(event) {
 
 attachDomInspector();
 initCodeEditor();
+ensureExecutionRunner().catch(function() {
+  // Runner zostanie ponownie załadowany przy pierwszej próbie uruchomienia kodu.
+});
 renderMission();
