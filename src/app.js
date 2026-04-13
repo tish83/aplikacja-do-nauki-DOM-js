@@ -2643,15 +2643,36 @@ function createDomSandbox(sceneRoot) {
     return proxy;
   }
 
+  function querySelectorWithinScene(selectorText) {
+    const selector = String(selectorText || "");
+    if (!selector) return null;
+    if (typeof sceneRoot.matches === "function" && sceneRoot.matches(selector)) {
+      return sceneRoot;
+    }
+    return sceneRoot.querySelector(selector);
+  }
+
+  function querySelectorAllWithinScene(selectorText) {
+    const selector = String(selectorText || "");
+    if (!selector) return [];
+    const result = Array.from(sceneRoot.querySelectorAll(selector));
+    if (typeof sceneRoot.matches === "function" && sceneRoot.matches(selector)) {
+      result.unshift(sceneRoot);
+    }
+    return result;
+  }
+
   const safeDocument = {
     getElementById: function(id) {
-      return wrap(sceneRoot.querySelector("#" + escapeCssId(id)));
+      const safeId = String(id || "");
+      if (sceneRoot.id === safeId) return wrap(sceneRoot);
+      return wrap(sceneRoot.querySelector("#" + escapeCssId(safeId)));
     },
     querySelector: function(selector) {
-      return wrap(sceneRoot.querySelector(String(selector || "")));
+      return wrap(querySelectorWithinScene(selector));
     },
     querySelectorAll: function(selector) {
-      return wrap(sceneRoot.querySelectorAll(String(selector || "")));
+      return wrap(querySelectorAllWithinScene(selector));
     },
     getElementsByClassName: function(className) {
       return wrap(sceneRoot.getElementsByClassName(String(className || "")));
