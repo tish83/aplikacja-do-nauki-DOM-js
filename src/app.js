@@ -1020,7 +1020,21 @@ const missions = [
     solution: 'const arena = document.getElementById("arena");\narena.children[1].style.outline = "2px solid gold";\narena.children[3].style.outline = "2px solid gold";',
     validate: function(scene) {
       const arena = scene.querySelector("#arena");
-      return arena && arena.children[1].style.outline === "2px solid gold" && arena.children[3].style.outline === "2px solid gold" && !arena.children[0].style.outline && !arena.children[2].style.outline && !arena.children[4].style.outline;
+      if (!arena || arena.children.length < 5) return false;
+
+      function hasGoldOutline(el) {
+        const s = el.style;
+        const widthOk = s.outlineWidth === "2px";
+        const styleOk = s.outlineStyle === "solid";
+        const colorOk = s.outlineColor === "gold" || s.outlineColor === "rgb(255, 215, 0)";
+        return widthOk && styleOk && colorOk;
+      }
+
+      return hasGoldOutline(arena.children[1])
+        && hasGoldOutline(arena.children[3])
+        && !arena.children[0].style.outline
+        && !arena.children[2].style.outline
+        && !arena.children[4].style.outline;
     }
   },
   {
